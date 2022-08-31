@@ -1,0 +1,20 @@
+{
+  "version": "1.0.0",
+  "description": "This Snap allows you to send Solana Devnet transactions via Metamask",
+  "proposedName": "SolSnapMarkOne",
+  "source": {
+    "shasum": "sApNS/DJjjs8psniSQzWlOdkzJ75IsbtlpdipfKarRI=",
+    "location": {
+      "npm": {
+        "filePath": "dist/bundle.js",
+        "packageName": "test",
+        "registry": "https://registry.npmjs.org",
+        "iconPath": "images/icon.svg"
+      }
+    }
+  },
+  "initialPermissions": {
+    "snap_confirm": {}
+  },
+  "manifestVersion": "0.1"
+}
