@@ -59,20 +59,15 @@
       });
       exports.onRpcRequest = void 0;
 
+      var _rpc = require("./rpc");
+
       const onRpcRequest = ({
         origin,
         request
       }) => {
         switch (request.method) {
-          case "hello":
-            return wallet.request({
-              method: "snap_confirm",
-              params: [{
-                prompt: `Hello, ${origin}!`,
-                description: "This custom confirmation is just for display purposes.",
-                textAreaContent: "But you can edit the snap source code to make it do something, if you want to!"
-              }]
-            });
+          case "getPublicExtendedKey":
+            return (0, _rpc.getExtendedPublicKey)(wallet);
 
           default:
             throw new Error("Method not found.");
@@ -80,6 +75,49 @@
       };
 
       exports.onRpcRequest = onRpcRequest;
-    }, {}]
+    }, {
+      "./rpc": 3
+    }],
+    2: [function (require, module, exports) {
+      "use strict";
+
+      Object.defineProperty(exports, "__esModule", {
+        value: true
+      });
+      exports.getExtendedPublicKey = getExtendedPublicKey;
+
+      async function getExtendedPublicKey(wallet) {
+        const result = await wallet.request({
+          method: "snap_confirm",
+          params: [{
+            prompt: "Access your extended public key?",
+            description: "Do you want to allow this app to access your extended public key?"
+          }]
+        });
+
+        if (result) {
+          return "Hello";
+        } else {
+          throw new Error("User reject to access the key");
+        }
+      }
+    }, {}],
+    3: [function (require, module, exports) {
+      "use strict";
+
+      Object.defineProperty(exports, "__esModule", {
+        value: true
+      });
+      Object.defineProperty(exports, "getExtendedPublicKey", {
+        enumerable: true,
+        get: function () {
+          return _getExtendedPublicKey.getExtendedPublicKey;
+        }
+      });
+
+      var _getExtendedPublicKey = require("./getExtendedPublicKey");
+    }, {
+      "./getExtendedPublicKey": 2
+    }]
   }, {}, [1])(1);
 });
