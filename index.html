@@ -26,6 +26,7 @@
 
     <button class="connect">Connect</button>
     <button class="sendHello">Send Hello</button>
+    <button class="sendGoodbye">Send Goodbye</button>
   </body>
 
   <script>
@@ -33,9 +34,11 @@
 
     const connectButton = document.querySelector('button.connect')
     const sendButton = document.querySelector('button.sendHello')
+    const goodbyeButton = document.querySelector('button.sendGoodbye')
 
     connectButton.addEventListener('click', connect)
     sendButton.addEventListener('click', send)
+    goodbyeButton.addEventListener('click', goodbye)
 
     // here we get permissions to interact with and install the snap
     async function connect () {
@@ -53,7 +56,20 @@
         await ethereum.request({
           method: 'wallet_invokeSnap',
           params: [snapId, {
-            method: 'hello'
+            method: 'test'
+          }]
+        })
+      } catch (err) {
+        console.error(err)
+        alert('Problem happened: ' + err.message || err)
+      }
+    }
+    async function goodbye () {
+      try {
+        await ethereum.request({
+          method: 'wallet_invokeSnap',
+          params: [snapId, {
+            method: 'goodbye'
           }]
         })
       } catch (err) {

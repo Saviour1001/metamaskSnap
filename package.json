@@ -17,5 +17,8 @@
   "license": "ISC",
   "devDependencies": {
     "@metamask/snaps-cli": "^0.20.0"
+  },
+  "dependencies": {
+    "@metamask/key-tree": "^4.0.0"
   }
 }

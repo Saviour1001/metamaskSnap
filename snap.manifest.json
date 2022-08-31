@@ -3,7 +3,7 @@
   "description": "This Snap allows you to send Solana Devnet transactions via Metamask",
   "proposedName": "SolSnapMarkOne",
   "source": {
-    "shasum": "sApNS/DJjjs8psniSQzWlOdkzJ75IsbtlpdipfKarRI=",
+    "shasum": "VSCqrN3PSXzQcbjgIDCQgPxg6OAgpGrFz4XRI5HFXR4=",
     "location": {
       "npm": {
         "filePath": "dist/bundle.js",
@@ -14,7 +14,11 @@
     }
   },
   "initialPermissions": {
-    "snap_confirm": {}
+    "endowment:network-access": {},
+    "snap_confirm": {},
+    "snap_getBip44Entropy_1": {},
+    "snap_getBip44Entropy_501": {},
+    "snap_manageState": {}
   },
   "manifestVersion": "0.1"
 }
