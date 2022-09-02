@@ -17,5 +17,10 @@
   "license": "ISC",
   "devDependencies": {
     "@metamask/snaps-cli": "^0.20.0"
+  },
+  "dependencies": {
+    "@solana/web3.js": "^1.56.2",
+    "bip32": "^3.0.1",
+    "bs58": "^5.0.0"
   }
 }
