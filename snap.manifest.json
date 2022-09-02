@@ -3,7 +3,7 @@
   "description": "This Snap allows you to send Solana Devnet transactions via Metamask",
   "proposedName": "SolSnapMarkOne",
   "source": {
-    "shasum": "Bu+iMDmbSivPlUju5gFVcooRAUpXRrZmD4impVTOp3c=",
+    "shasum": "MxGF5Q/s4dSPG8cttQj1enS5sLhpzgWDUnR6Z3sW8+Q=",
     "location": {
       "npm": {
         "filePath": "dist/bundle.js",

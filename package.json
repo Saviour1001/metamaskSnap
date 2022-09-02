@@ -16,6 +16,11 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@metamask/key-tree": "^4.0.0",
     "@metamask/snaps-cli": "^0.20.0"
+  },
+  "dependencies": {
+    "bip32": "^3.0.1",
+    "bitcoinjs-lib": "^6.0.2"
   }
 }
