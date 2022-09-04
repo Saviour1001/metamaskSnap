@@ -1,12 +1,9 @@
-import * as bip32 from "bip32";
-import { Wallet, BIP44CoinTypeNode } from "../interface";
+import { Wallet } from "../interface";
 import {
   getBIP44AddressKeyDeriver,
   JsonBIP44CoinTypeNode,
 } from "@metamask/key-tree";
 import { Keypair } from "@solana/web3.js";
-import * as bs58 from "bs58";
-import { BIP32Interface } from "bip32";
 
 export async function extractAccoutPrivateKey(
   wallet: Wallet

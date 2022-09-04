@@ -1,7 +1,7 @@
 {
-  "name": "test",
+  "name": "solsnap",
   "version": "1.0.0",
-  "description": "",
+  "description": "Allows you to create a Solana Wallet using Metamasks",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -10,18 +10,22 @@
   ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "rm -rf build && mm-snap build && mm-snap serve"
+    "build": "rm -rf build && mm-snap build && mm-snap serve",
+    "start": "mm-snap serve",
+    "clean": "rm -rf build"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "solana",
+    "metamask",
+    "snap"
+  ],
+  "author": "Harsh Ghodkar",
   "license": "ISC",
   "devDependencies": {
     "@metamask/snaps-cli": "^0.20.0"
   },
   "dependencies": {
     "@metamask/key-tree": "^4.0.0",
-    "@solana/web3.js": "^1.56.2",
-    "bip32": "^3.0.1",
-    "bs58": "^5.0.0"
+    "@solana/web3.js": "^1.56.2"
   }
 }

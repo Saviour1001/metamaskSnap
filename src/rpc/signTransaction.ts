@@ -21,12 +21,16 @@ export async function signTransaction(wallet: Wallet): Promise<string> {
     "confirmed"
   );
 
+  // return connection;
+
   // const airdropSignature = await connection.requestAirdrop(
   //   user.publicKey,
   //   LAMPORTS_PER_SOL
   // );
 
   // await connection.confirmTransaction(airdropSignature);
+
+  // return airdropSignature;
 
   const lamportsToSend = 1_000_000;
 

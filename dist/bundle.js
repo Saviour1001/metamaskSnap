@@ -1478,7 +1478,7 @@ var regeneratorRuntime;
       }).call(this, require("buffer").Buffer);
     }, {
       "@noble/ed25519": 28,
-      "buffer": 56
+      "buffer": 53
     }],
     19: [function (require, module, exports) {
       "use strict";
@@ -1589,7 +1589,7 @@ var regeneratorRuntime;
       }).call(this, require("buffer").Buffer);
     }, {
       "@noble/secp256k1": 40,
-      "buffer": 56
+      "buffer": 53
     }],
     21: [function (require, module, exports) {
       "use strict";
@@ -1923,7 +1923,7 @@ var regeneratorRuntime;
       "@noble/hashes/hmac": 33,
       "@noble/hashes/sha3": 37,
       "@noble/hashes/sha512": 38,
-      "buffer": 56
+      "buffer": 53
     }],
     23: [function (require, module, exports) {
       (function () {
@@ -1983,7 +1983,7 @@ var regeneratorRuntime;
       "@noble/hashes/hmac": 33,
       "@noble/hashes/sha512": 38,
       "@scure/bip39": 42,
-      "buffer": 56
+      "buffer": 53
     }],
     24: [function (require, module, exports) {
       "use strict";
@@ -2155,7 +2155,7 @@ var regeneratorRuntime;
       "./BIP44Node": 14,
       "./curves/secp256k1": 20,
       "./utils": 27,
-      "buffer": 56
+      "buffer": 53
     }],
     26: [function (require, module, exports) {
       (function () {
@@ -2256,7 +2256,7 @@ var regeneratorRuntime;
       "./SLIP10Node": 15,
       "./constants": 16,
       "./curves": 19,
-      "buffer": 56
+      "buffer": 53
     }],
     27: [function (require, module, exports) {
       (function () {
@@ -2479,7 +2479,7 @@ var regeneratorRuntime;
       "@noble/hashes/sha256": 36,
       "@noble/hashes/utils": 39,
       "@scure/base": 41,
-      "buffer": 56
+      "buffer": 53
     }],
     28: [function (require, module, exports) {
       "use strict";
@@ -3590,7 +3590,7 @@ var regeneratorRuntime;
         }
       });
     }, {
-      "crypto": 55
+      "crypto": 52
     }],
     29: [function (require, module, exports) {
       "use strict";
@@ -6584,7 +6584,7 @@ var regeneratorRuntime;
 
       };
     }, {
-      "crypto": 55
+      "crypto": 52
     }],
     41: [function (require, module, exports) {
       "use strict";
@@ -8605,7 +8605,7 @@ var regeneratorRuntime;
 
       exports.constant = (value, property) => new Constant(value, property);
     }, {
-      "buffer": 56
+      "buffer": 53
     }],
     44: [function (require, module, exports) {
       'use strict';
@@ -15647,191 +15647,17 @@ var regeneratorRuntime;
       "@noble/hashes/sha512": 38,
       "@noble/secp256k1": 40,
       "@solana/buffer-layout": 43,
-      "bigint-buffer": 50,
-      "bn.js": 46,
-      "borsh": 51,
-      "bs58": 47,
-      "buffer": 56,
-      "jayson/lib/client/browser": 59,
-      "js-sha3": 48,
-      "rpc-websockets": 62,
-      "superstruct": 66
+      "bigint-buffer": 49,
+      "bn.js": 45,
+      "borsh": 50,
+      "bs58": 54,
+      "buffer": 53,
+      "jayson/lib/client/browser": 57,
+      "js-sha3": 46,
+      "rpc-websockets": 60,
+      "superstruct": 64
     }],
     45: [function (require, module, exports) {
-      'use strict';
-
-      var _Buffer = require('safe-buffer').Buffer;
-
-      function base(ALPHABET) {
-        if (ALPHABET.length >= 255) {
-          throw new TypeError('Alphabet too long');
-        }
-
-        var BASE_MAP = new Uint8Array(256);
-
-        for (var j = 0; j < BASE_MAP.length; j++) {
-          BASE_MAP[j] = 255;
-        }
-
-        for (var i = 0; i < ALPHABET.length; i++) {
-          var x = ALPHABET.charAt(i);
-          var xc = x.charCodeAt(0);
-
-          if (BASE_MAP[xc] !== 255) {
-            throw new TypeError(x + ' is ambiguous');
-          }
-
-          BASE_MAP[xc] = i;
-        }
-
-        var BASE = ALPHABET.length;
-        var LEADER = ALPHABET.charAt(0);
-        var FACTOR = Math.log(BASE) / Math.log(256);
-        var iFACTOR = Math.log(256) / Math.log(BASE);
-
-        function encode(source) {
-          if (Array.isArray(source) || source instanceof Uint8Array) {
-            source = _Buffer.from(source);
-          }
-
-          if (!_Buffer.isBuffer(source)) {
-            throw new TypeError('Expected Buffer');
-          }
-
-          if (source.length === 0) {
-            return '';
-          }
-
-          var zeroes = 0;
-          var length = 0;
-          var pbegin = 0;
-          var pend = source.length;
-
-          while (pbegin !== pend && source[pbegin] === 0) {
-            pbegin++;
-            zeroes++;
-          }
-
-          var size = (pend - pbegin) * iFACTOR + 1 >>> 0;
-          var b58 = new Uint8Array(size);
-
-          while (pbegin !== pend) {
-            var carry = source[pbegin];
-            var i = 0;
-
-            for (var it1 = size - 1; (carry !== 0 || i < length) && it1 !== -1; it1--, i++) {
-              carry += 256 * b58[it1] >>> 0;
-              b58[it1] = carry % BASE >>> 0;
-              carry = carry / BASE >>> 0;
-            }
-
-            if (carry !== 0) {
-              throw new Error('Non-zero carry');
-            }
-
-            length = i;
-            pbegin++;
-          }
-
-          var it2 = size - length;
-
-          while (it2 !== size && b58[it2] === 0) {
-            it2++;
-          }
-
-          var str = LEADER.repeat(zeroes);
-
-          for (; it2 < size; ++it2) {
-            str += ALPHABET.charAt(b58[it2]);
-          }
-
-          return str;
-        }
-
-        function decodeUnsafe(source) {
-          if (typeof source !== 'string') {
-            throw new TypeError('Expected String');
-          }
-
-          if (source.length === 0) {
-            return _Buffer.alloc(0);
-          }
-
-          var psz = 0;
-          var zeroes = 0;
-          var length = 0;
-
-          while (source[psz] === LEADER) {
-            zeroes++;
-            psz++;
-          }
-
-          var size = (source.length - psz) * FACTOR + 1 >>> 0;
-          var b256 = new Uint8Array(size);
-
-          while (source[psz]) {
-            var carry = BASE_MAP[source.charCodeAt(psz)];
-
-            if (carry === 255) {
-              return;
-            }
-
-            var i = 0;
-
-            for (var it3 = size - 1; (carry !== 0 || i < length) && it3 !== -1; it3--, i++) {
-              carry += BASE * b256[it3] >>> 0;
-              b256[it3] = carry % 256 >>> 0;
-              carry = carry / 256 >>> 0;
-            }
-
-            if (carry !== 0) {
-              throw new Error('Non-zero carry');
-            }
-
-            length = i;
-            psz++;
-          }
-
-          var it4 = size - length;
-
-          while (it4 !== size && b256[it4] === 0) {
-            it4++;
-          }
-
-          var vch = _Buffer.allocUnsafe(zeroes + (size - it4));
-
-          vch.fill(0x00, 0, zeroes);
-          var j = zeroes;
-
-          while (it4 !== size) {
-            vch[j++] = b256[it4++];
-          }
-
-          return vch;
-        }
-
-        function decode(string) {
-          var buffer = decodeUnsafe(string);
-
-          if (buffer) {
-            return buffer;
-          }
-
-          throw new Error('Non-base' + BASE + ' character');
-        }
-
-        return {
-          encode: encode,
-          decodeUnsafe: decodeUnsafe,
-          decode: decode
-        };
-      }
-
-      module.exports = base;
-    }, {
-      "safe-buffer": 65
-    }],
-    46: [function (require, module, exports) {
       (function (module, exports) {
         'use strict';
 
@@ -19189,17 +19015,9 @@ var regeneratorRuntime;
         };
       })(typeof module === 'undefined' || module, this);
     }, {
-      "buffer": 55
+      "buffer": 52
     }],
-    47: [function (require, module, exports) {
-      var basex = require('base-x');
-
-      var ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
-      module.exports = basex(ALPHABET);
-    }, {
-      "base-x": 45
-    }],
-    48: [function (require, module, exports) {
+    46: [function (require, module, exports) {
       (function (process, global) {
         (function () {
           (function () {
@@ -19950,9 +19768,183 @@ var regeneratorRuntime;
         }).call(this);
       }).call(this, require('_process'), typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {});
     }, {
-      "_process": 61
+      "_process": 59
     }],
-    49: [function (require, module, exports) {
+    47: [function (require, module, exports) {
+      'use strict';
+
+      var _Buffer = require('safe-buffer').Buffer;
+
+      function base(ALPHABET) {
+        if (ALPHABET.length >= 255) {
+          throw new TypeError('Alphabet too long');
+        }
+
+        var BASE_MAP = new Uint8Array(256);
+
+        for (var j = 0; j < BASE_MAP.length; j++) {
+          BASE_MAP[j] = 255;
+        }
+
+        for (var i = 0; i < ALPHABET.length; i++) {
+          var x = ALPHABET.charAt(i);
+          var xc = x.charCodeAt(0);
+
+          if (BASE_MAP[xc] !== 255) {
+            throw new TypeError(x + ' is ambiguous');
+          }
+
+          BASE_MAP[xc] = i;
+        }
+
+        var BASE = ALPHABET.length;
+        var LEADER = ALPHABET.charAt(0);
+        var FACTOR = Math.log(BASE) / Math.log(256);
+        var iFACTOR = Math.log(256) / Math.log(BASE);
+
+        function encode(source) {
+          if (Array.isArray(source) || source instanceof Uint8Array) {
+            source = _Buffer.from(source);
+          }
+
+          if (!_Buffer.isBuffer(source)) {
+            throw new TypeError('Expected Buffer');
+          }
+
+          if (source.length === 0) {
+            return '';
+          }
+
+          var zeroes = 0;
+          var length = 0;
+          var pbegin = 0;
+          var pend = source.length;
+
+          while (pbegin !== pend && source[pbegin] === 0) {
+            pbegin++;
+            zeroes++;
+          }
+
+          var size = (pend - pbegin) * iFACTOR + 1 >>> 0;
+          var b58 = new Uint8Array(size);
+
+          while (pbegin !== pend) {
+            var carry = source[pbegin];
+            var i = 0;
+
+            for (var it1 = size - 1; (carry !== 0 || i < length) && it1 !== -1; it1--, i++) {
+              carry += 256 * b58[it1] >>> 0;
+              b58[it1] = carry % BASE >>> 0;
+              carry = carry / BASE >>> 0;
+            }
+
+            if (carry !== 0) {
+              throw new Error('Non-zero carry');
+            }
+
+            length = i;
+            pbegin++;
+          }
+
+          var it2 = size - length;
+
+          while (it2 !== size && b58[it2] === 0) {
+            it2++;
+          }
+
+          var str = LEADER.repeat(zeroes);
+
+          for (; it2 < size; ++it2) {
+            str += ALPHABET.charAt(b58[it2]);
+          }
+
+          return str;
+        }
+
+        function decodeUnsafe(source) {
+          if (typeof source !== 'string') {
+            throw new TypeError('Expected String');
+          }
+
+          if (source.length === 0) {
+            return _Buffer.alloc(0);
+          }
+
+          var psz = 0;
+          var zeroes = 0;
+          var length = 0;
+
+          while (source[psz] === LEADER) {
+            zeroes++;
+            psz++;
+          }
+
+          var size = (source.length - psz) * FACTOR + 1 >>> 0;
+          var b256 = new Uint8Array(size);
+
+          while (source[psz]) {
+            var carry = BASE_MAP[source.charCodeAt(psz)];
+
+            if (carry === 255) {
+              return;
+            }
+
+            var i = 0;
+
+            for (var it3 = size - 1; (carry !== 0 || i < length) && it3 !== -1; it3--, i++) {
+              carry += BASE * b256[it3] >>> 0;
+              b256[it3] = carry % 256 >>> 0;
+              carry = carry / 256 >>> 0;
+            }
+
+            if (carry !== 0) {
+              throw new Error('Non-zero carry');
+            }
+
+            length = i;
+            psz++;
+          }
+
+          var it4 = size - length;
+
+          while (it4 !== size && b256[it4] === 0) {
+            it4++;
+          }
+
+          var vch = _Buffer.allocUnsafe(zeroes + (size - it4));
+
+          vch.fill(0x00, 0, zeroes);
+          var j = zeroes;
+
+          while (it4 !== size) {
+            vch[j++] = b256[it4++];
+          }
+
+          return vch;
+        }
+
+        function decode(string) {
+          var buffer = decodeUnsafe(string);
+
+          if (buffer) {
+            return buffer;
+          }
+
+          throw new Error('Non-base' + BASE + ' character');
+        }
+
+        return {
+          encode: encode,
+          decodeUnsafe: decodeUnsafe,
+          decode: decode
+        };
+      }
+
+      module.exports = base;
+    }, {
+      "safe-buffer": 63
+    }],
+    48: [function (require, module, exports) {
       'use strict';
 
       exports.byteLength = byteLength;
@@ -20064,7 +20056,7 @@ var regeneratorRuntime;
         return parts.join('');
       }
     }, {}],
-    50: [function (require, module, exports) {
+    49: [function (require, module, exports) {
       (function () {
         (function () {
           'use strict';
@@ -20130,9 +20122,9 @@ var regeneratorRuntime;
         }).call(this);
       }).call(this, require("buffer").Buffer);
     }, {
-      "buffer": 56
+      "buffer": 53
     }],
-    51: [function (require, module, exports) {
+    50: [function (require, module, exports) {
       (function () {
         (function () {
           "use strict";
@@ -20663,31 +20655,19 @@ var regeneratorRuntime;
         }).call(this);
       }).call(this, require("buffer").Buffer);
     }, {
-      "bn.js": 53,
+      "bn.js": 51,
       "bs58": 54,
-      "buffer": 56,
-      "text-encoding-utf-8": 67
+      "buffer": 53,
+      "text-encoding-utf-8": 65
     }],
-    52: [function (require, module, exports) {
+    51: [function (require, module, exports) {
       arguments[4][45][0].apply(exports, arguments);
     }, {
-      "dup": 45,
-      "safe-buffer": 65
+      "buffer": 52,
+      "dup": 45
     }],
+    52: [function (require, module, exports) {}, {}],
     53: [function (require, module, exports) {
-      arguments[4][46][0].apply(exports, arguments);
-    }, {
-      "buffer": 55,
-      "dup": 46
-    }],
-    54: [function (require, module, exports) {
-      arguments[4][47][0].apply(exports, arguments);
-    }, {
-      "base-x": 52,
-      "dup": 47
-    }],
-    55: [function (require, module, exports) {}, {}],
-    56: [function (require, module, exports) {
       (function () {
         (function () {
           'use strict';
@@ -22347,11 +22327,19 @@ var regeneratorRuntime;
         }).call(this);
       }).call(this, require("buffer").Buffer);
     }, {
-      "base64-js": 49,
-      "buffer": 56,
-      "ieee754": 58
+      "base64-js": 48,
+      "buffer": 53,
+      "ieee754": 56
     }],
-    57: [function (require, module, exports) {
+    54: [function (require, module, exports) {
+      var basex = require('base-x');
+
+      var ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+      module.exports = basex(ALPHABET);
+    }, {
+      "base-x": 47
+    }],
+    55: [function (require, module, exports) {
       'use strict';
 
       var has = Object.prototype.hasOwnProperty,
@@ -22559,7 +22547,7 @@ var regeneratorRuntime;
         module.exports = EventEmitter;
       }
     }, {}],
-    58: [function (require, module, exports) {
+    56: [function (require, module, exports) {
       exports.read = function (buffer, offset, isLE, mLen, nBytes) {
         var e, m;
         var eLen = nBytes * 8 - mLen - 1;
@@ -22649,7 +22637,7 @@ var regeneratorRuntime;
         buffer[offset + i - d] |= s * 128;
       };
     }, {}],
-    59: [function (require, module, exports) {
+    57: [function (require, module, exports) {
       'use strict';
 
       const uuid = require('uuid').v4;
@@ -22771,10 +22759,10 @@ var regeneratorRuntime;
         callback(null, response);
       };
     }, {
-      "../../generateRequest": 60,
-      "uuid": 68
+      "../../generateRequest": 58,
+      "uuid": 66
     }],
-    60: [function (require, module, exports) {
+    58: [function (require, module, exports) {
       'use strict';
 
       const uuid = require('uuid').v4;
@@ -22825,9 +22813,9 @@ var regeneratorRuntime;
 
       module.exports = generateRequest;
     }, {
-      "uuid": 68
+      "uuid": 66
     }],
-    61: [function (require, module, exports) {
+    59: [function (require, module, exports) {
       var process = module.exports = {};
       var cachedSetTimeout;
       var cachedClearTimeout;
@@ -23019,7 +23007,7 @@ var regeneratorRuntime;
         return 0;
       };
     }, {}],
-    62: [function (require, module, exports) {
+    60: [function (require, module, exports) {
       "use strict";
 
       var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
@@ -23107,8 +23095,8 @@ var regeneratorRuntime;
 
       exports.Client = Client;
     }, {
-      "./lib/client": 63,
-      "./lib/client/websocket.browser": 64,
+      "./lib/client": 61,
+      "./lib/client/websocket.browser": 62,
       "@babel/runtime/helpers/classCallCheck": 3,
       "@babel/runtime/helpers/createClass": 4,
       "@babel/runtime/helpers/getPrototypeOf": 5,
@@ -23116,7 +23104,7 @@ var regeneratorRuntime;
       "@babel/runtime/helpers/interopRequireDefault": 7,
       "@babel/runtime/helpers/possibleConstructorReturn": 8
     }],
-    63: [function (require, module, exports) {
+    61: [function (require, module, exports) {
       (function () {
         (function () {
           "use strict";
@@ -23545,10 +23533,10 @@ var regeneratorRuntime;
       "@babel/runtime/helpers/possibleConstructorReturn": 8,
       "@babel/runtime/helpers/typeof": 11,
       "@babel/runtime/regenerator": 12,
-      "buffer": 56,
-      "eventemitter3": 57
+      "buffer": 53,
+      "eventemitter3": 55
     }],
-    64: [function (require, module, exports) {
+    62: [function (require, module, exports) {
       "use strict";
 
       var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
@@ -23668,9 +23656,9 @@ var regeneratorRuntime;
       "@babel/runtime/helpers/inherits": 6,
       "@babel/runtime/helpers/interopRequireDefault": 7,
       "@babel/runtime/helpers/possibleConstructorReturn": 8,
-      "eventemitter3": 57
+      "eventemitter3": 55
     }],
-    65: [function (require, module, exports) {
+    63: [function (require, module, exports) {
       var buffer = require('buffer');
 
       var Buffer = buffer.Buffer;
@@ -23739,9 +23727,9 @@ var regeneratorRuntime;
         return buffer.SlowBuffer(size);
       };
     }, {
-      "buffer": 56
+      "buffer": 53
     }],
-    66: [function (require, module, exports) {
+    64: [function (require, module, exports) {
       'use strict';
 
       Object.defineProperty(exports, '__esModule', {
@@ -24666,7 +24654,7 @@ var regeneratorRuntime;
       exports.unknown = unknown;
       exports.validate = validate;
     }, {}],
-    67: [function (require, module, exports) {
+    65: [function (require, module, exports) {
       'use strict';
 
       function inRange(a, min, max) {
@@ -25005,7 +24993,7 @@ var regeneratorRuntime;
       exports.TextEncoder = TextEncoder;
       exports.TextDecoder = TextDecoder;
     }, {}],
-    68: [function (require, module, exports) {
+    66: [function (require, module, exports) {
       "use strict";
 
       Object.defineProperty(exports, "__esModule", {
@@ -25090,17 +25078,17 @@ var regeneratorRuntime;
         };
       }
     }, {
-      "./nil.js": 70,
-      "./parse.js": 71,
-      "./stringify.js": 75,
-      "./v1.js": 76,
-      "./v3.js": 77,
-      "./v4.js": 79,
-      "./v5.js": 80,
-      "./validate.js": 81,
-      "./version.js": 82
+      "./nil.js": 68,
+      "./parse.js": 69,
+      "./stringify.js": 73,
+      "./v1.js": 74,
+      "./v3.js": 75,
+      "./v4.js": 77,
+      "./v5.js": 78,
+      "./validate.js": 79,
+      "./version.js": 80
     }],
-    69: [function (require, module, exports) {
+    67: [function (require, module, exports) {
       "use strict";
 
       Object.defineProperty(exports, "__esModule", {
@@ -25273,7 +25261,7 @@ var regeneratorRuntime;
       var _default = md5;
       exports.default = _default;
     }, {}],
-    70: [function (require, module, exports) {
+    68: [function (require, module, exports) {
       "use strict";
 
       Object.defineProperty(exports, "__esModule", {
@@ -25283,7 +25271,7 @@ var regeneratorRuntime;
       var _default = '00000000-0000-0000-0000-000000000000';
       exports.default = _default;
     }, {}],
-    71: [function (require, module, exports) {
+    69: [function (require, module, exports) {
       "use strict";
 
       Object.defineProperty(exports, "__esModule", {
@@ -25328,9 +25316,9 @@ var regeneratorRuntime;
       var _default = parse;
       exports.default = _default;
     }, {
-      "./validate.js": 81
+      "./validate.js": 79
     }],
-    72: [function (require, module, exports) {
+    70: [function (require, module, exports) {
       "use strict";
 
       Object.defineProperty(exports, "__esModule", {
@@ -25340,7 +25328,7 @@ var regeneratorRuntime;
       var _default = /^(?:[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|00000000-0000-0000-0000-000000000000)$/i;
       exports.default = _default;
     }, {}],
-    73: [function (require, module, exports) {
+    71: [function (require, module, exports) {
       "use strict";
 
       Object.defineProperty(exports, "__esModule", {
@@ -25362,7 +25350,7 @@ var regeneratorRuntime;
         return getRandomValues(rnds8);
       }
     }, {}],
-    74: [function (require, module, exports) {
+    72: [function (require, module, exports) {
       "use strict";
 
       Object.defineProperty(exports, "__esModule", {
@@ -25464,7 +25452,7 @@ var regeneratorRuntime;
       var _default = sha1;
       exports.default = _default;
     }, {}],
-    75: [function (require, module, exports) {
+    73: [function (require, module, exports) {
       "use strict";
 
       Object.defineProperty(exports, "__esModule", {
@@ -25499,9 +25487,9 @@ var regeneratorRuntime;
       var _default = stringify;
       exports.default = _default;
     }, {
-      "./validate.js": 81
+      "./validate.js": 79
     }],
-    76: [function (require, module, exports) {
+    74: [function (require, module, exports) {
       "use strict";
 
       Object.defineProperty(exports, "__esModule", {
@@ -25588,10 +25576,10 @@ var regeneratorRuntime;
       var _default = v1;
       exports.default = _default;
     }, {
-      "./rng.js": 73,
-      "./stringify.js": 75
+      "./rng.js": 71,
+      "./stringify.js": 73
     }],
-    77: [function (require, module, exports) {
+    75: [function (require, module, exports) {
       "use strict";
 
       Object.defineProperty(exports, "__esModule", {
@@ -25613,10 +25601,10 @@ var regeneratorRuntime;
       var _default = v3;
       exports.default = _default;
     }, {
-      "./md5.js": 69,
-      "./v35.js": 78
+      "./md5.js": 67,
+      "./v35.js": 76
     }],
-    78: [function (require, module, exports) {
+    76: [function (require, module, exports) {
       "use strict";
 
       Object.defineProperty(exports, "__esModule", {
@@ -25694,10 +25682,10 @@ var regeneratorRuntime;
         return generateUUID;
       }
     }, {
-      "./parse.js": 71,
-      "./stringify.js": 75
+      "./parse.js": 69,
+      "./stringify.js": 73
     }],
-    79: [function (require, module, exports) {
+    77: [function (require, module, exports) {
       "use strict";
 
       Object.defineProperty(exports, "__esModule", {
@@ -25739,10 +25727,10 @@ var regeneratorRuntime;
       var _default = v4;
       exports.default = _default;
     }, {
-      "./rng.js": 73,
-      "./stringify.js": 75
+      "./rng.js": 71,
+      "./stringify.js": 73
     }],
-    80: [function (require, module, exports) {
+    78: [function (require, module, exports) {
       "use strict";
 
       Object.defineProperty(exports, "__esModule", {
@@ -25764,10 +25752,10 @@ var regeneratorRuntime;
       var _default = v5;
       exports.default = _default;
     }, {
-      "./sha1.js": 74,
-      "./v35.js": 78
+      "./sha1.js": 72,
+      "./v35.js": 76
     }],
-    81: [function (require, module, exports) {
+    79: [function (require, module, exports) {
       "use strict";
 
       Object.defineProperty(exports, "__esModule", {
@@ -25790,9 +25778,9 @@ var regeneratorRuntime;
       var _default = validate;
       exports.default = _default;
     }, {
-      "./regex.js": 72
+      "./regex.js": 70
     }],
-    82: [function (require, module, exports) {
+    80: [function (require, module, exports) {
       "use strict";
 
       Object.defineProperty(exports, "__esModule", {
@@ -25819,9 +25807,9 @@ var regeneratorRuntime;
       var _default = version;
       exports.default = _default;
     }, {
-      "./validate.js": 81
+      "./validate.js": 79
     }],
-    83: [function (require, module, exports) {
+    81: [function (require, module, exports) {
       "use strict";
 
       Object.defineProperty(exports, "__esModule", {
@@ -25849,9 +25837,9 @@ var regeneratorRuntime;
 
       exports.onRpcRequest = onRpcRequest;
     }, {
-      "./rpc": 85
+      "./rpc": 83
     }],
-    84: [function (require, module, exports) {
+    82: [function (require, module, exports) {
       "use strict";
 
       Object.defineProperty(exports, "__esModule", {
@@ -25902,7 +25890,7 @@ var regeneratorRuntime;
       "@metamask/key-tree": 26,
       "@solana/web3.js": 44
     }],
-    85: [function (require, module, exports) {
+    83: [function (require, module, exports) {
       "use strict";
 
       Object.defineProperty(exports, "__esModule", {
@@ -25925,10 +25913,10 @@ var regeneratorRuntime;
 
       var _signTransaction = require("./signTransaction");
     }, {
-      "./getExtendedPublicKey": 84,
-      "./signTransaction": 86
+      "./getExtendedPublicKey": 82,
+      "./signTransaction": 84
     }],
-    86: [function (require, module, exports) {
+    84: [function (require, module, exports) {
       "use strict";
 
       Object.defineProperty(exports, "__esModule", {
@@ -25956,8 +25944,8 @@ var regeneratorRuntime;
         return "Transaction sent and confirmed";
       }
     }, {
-      "./getExtendedPublicKey": 84,
+      "./getExtendedPublicKey": 82,
       "@solana/web3.js": 44
     }]
-  }, {}, [83])(83);
+  }, {}, [81])(81);
 });
