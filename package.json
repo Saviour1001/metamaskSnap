@@ -19,6 +19,7 @@
     "@metamask/snaps-cli": "^0.20.0"
   },
   "dependencies": {
+    "@metamask/key-tree": "^4.0.0",
     "@solana/web3.js": "^1.56.2",
     "bip32": "^3.0.1",
     "bs58": "^5.0.0"

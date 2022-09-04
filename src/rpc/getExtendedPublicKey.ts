@@ -1,5 +1,9 @@
 import * as bip32 from "bip32";
 import { Wallet, BIP44CoinTypeNode } from "../interface";
+import {
+  getBIP44AddressKeyDeriver,
+  JsonBIP44CoinTypeNode,
+} from "@metamask/key-tree";
 import { Keypair } from "@solana/web3.js";
 import * as bs58 from "bs58";
 import { BIP32Interface } from "bip32";
@@ -7,34 +11,28 @@ import { BIP32Interface } from "bip32";
 export async function extractAccoutPrivateKey(
   wallet: Wallet
 ): Promise<Keypair> {
+  // coin type for Solana
+  // other coin types are : https://github.com/satoshilabs/slips/blob/master/slip-0044.md
   let coinType: number = 501;
-  //   if (network != networks.bitcoin) {
-  //     coinType = 1;
-  //   }
 
+  // requesting the BIP44 node from the wallet
   const methodName = `snap_getBip44Entropy_${coinType}`;
   const bitcoin44node = (await wallet.request({
     method: methodName,
-  })) as BIP44CoinTypeNode;
-  const privateKeyBuffer = Buffer.from(bitcoin44node.privateKey, "hex");
-  const chainCodeBuffer = Buffer.from(bitcoin44node.chainCode, "hex");
-  //   return privateKeyBuffer.toString("hex");
+  })) as JsonBIP44CoinTypeNode;
 
-  //   const keypair = Keypair.fromSecretKey(
-  //     bs58.decode(chainCodeBuffer.toString("hex"))
-  //   );
-  //   return keypair;
+  // deriving the address as per mentioned in Solana Docs
+  // https://docs.solana.com/wallet-guide/paper-wallet#hierarchical-derivation
+  const addressKeyDeriver = await getBIP44AddressKeyDeriver(bitcoin44node, {
+    account: 0,
+    change: 0,
+  });
+  const extendedPrivateKey = await addressKeyDeriver(0, true);
+  const privateKey = extendedPrivateKey.privateKeyBuffer.slice(0, 32);
 
-  //   let node: BIP32Interface = bip32
-  //     .fromPrivateKey(privateKeyBuffer, chainCodeBuffer)
-
-  //@ts-ignore
-  // ignore checking since no function to set depth for node
-  //   node.__DEPTH = 2;
-  //@ts-ignore
-  // ignore checking since no function to set index for node
-  //   node.__INDEX = HIGHEST_BIT + 0;
-  //   return node.deriveHardened(0);
+  // returning the keypair
+  const keypair = Keypair.fromSeed(Uint8Array.from(privateKey));
+  return keypair;
 }
 
 export async function getExtendedPublicKey(wallet: Wallet): Promise<Keypair> {

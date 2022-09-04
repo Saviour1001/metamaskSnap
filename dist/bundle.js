@@ -599,6 +599,1891 @@ var regeneratorRuntime;
     13: [function (require, module, exports) {
       "use strict";
 
+      var __classPrivateFieldSet = this && this.__classPrivateFieldSet || function (receiver, state, value, kind, f) {
+        if (kind === "m") throw new TypeError("Private method is not writable");
+        if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
+        if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
+        return kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value), value;
+      };
+
+      var __classPrivateFieldGet = this && this.__classPrivateFieldGet || function (receiver, state, kind, f) {
+        if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
+        if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+        return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
+      };
+
+      var _BIP44CoinTypeNode_node;
+
+      Object.defineProperty(exports, "__esModule", {
+        value: true
+      });
+      exports.getBIP44AddressKeyDeriver = exports.deriveBIP44AddressKey = exports.BIP44CoinTypeNode = exports.BIP_44_COIN_TYPE_DEPTH = void 0;
+
+      const constants_1 = require("./constants");
+
+      const BIP44Node_1 = require("./BIP44Node");
+
+      const utils_1 = require("./utils");
+
+      const SLIP10Node_1 = require("./SLIP10Node");
+
+      exports.BIP_44_COIN_TYPE_DEPTH = 2;
+
+      class BIP44CoinTypeNode {
+        constructor(node, coin_type) {
+          _BIP44CoinTypeNode_node.set(this, void 0);
+
+          __classPrivateFieldSet(this, _BIP44CoinTypeNode_node, node, "f");
+
+          this.coin_type = coin_type;
+          this.path = utils_1.getBIP44CoinTypePathString(coin_type);
+          Object.freeze(this);
+        }
+
+        static async fromJSON(json, coin_type) {
+          validateCoinType(coin_type);
+          validateCoinTypeNodeDepth(json.depth);
+          const node = await BIP44Node_1.BIP44Node.fromExtendedKey({
+            depth: json.depth,
+            index: json.index,
+            parentFingerprint: json.parentFingerprint,
+            chainCode: utils_1.hexStringToBuffer(json.chainCode),
+            privateKey: utils_1.nullableHexStringToBuffer(json.privateKey),
+            publicKey: utils_1.hexStringToBuffer(json.publicKey)
+          });
+          return new BIP44CoinTypeNode(node, coin_type);
+        }
+
+        static async fromDerivationPath(derivationPath) {
+          validateCoinTypeNodeDepth(derivationPath.length - 1);
+          const node = await BIP44Node_1.BIP44Node.fromDerivationPath({
+            derivationPath
+          });
+          const coinType = Number.parseInt(derivationPath[exports.BIP_44_COIN_TYPE_DEPTH].split(':')[1].replace(`'`, ''), 10);
+          return new BIP44CoinTypeNode(node, coinType);
+        }
+
+        static async fromNode(node, coin_type) {
+          if (!(node instanceof BIP44Node_1.BIP44Node)) {
+            throw new Error('Invalid node: Expected an instance of BIP44Node.');
+          }
+
+          validateCoinType(coin_type);
+          validateCoinTypeNodeDepth(node.depth);
+          return new BIP44CoinTypeNode(node, coin_type);
+        }
+
+        get depth() {
+          return __classPrivateFieldGet(this, _BIP44CoinTypeNode_node, "f").depth;
+        }
+
+        get privateKeyBuffer() {
+          return __classPrivateFieldGet(this, _BIP44CoinTypeNode_node, "f").privateKeyBuffer;
+        }
+
+        get publicKeyBuffer() {
+          return __classPrivateFieldGet(this, _BIP44CoinTypeNode_node, "f").publicKeyBuffer;
+        }
+
+        get chainCodeBuffer() {
+          return __classPrivateFieldGet(this, _BIP44CoinTypeNode_node, "f").chainCodeBuffer;
+        }
+
+        get privateKey() {
+          return __classPrivateFieldGet(this, _BIP44CoinTypeNode_node, "f").privateKey;
+        }
+
+        get publicKey() {
+          return __classPrivateFieldGet(this, _BIP44CoinTypeNode_node, "f").publicKey;
+        }
+
+        get compressedPublicKeyBuffer() {
+          return __classPrivateFieldGet(this, _BIP44CoinTypeNode_node, "f").compressedPublicKeyBuffer;
+        }
+
+        get chainCode() {
+          return __classPrivateFieldGet(this, _BIP44CoinTypeNode_node, "f").chainCode;
+        }
+
+        get address() {
+          return __classPrivateFieldGet(this, _BIP44CoinTypeNode_node, "f").address;
+        }
+
+        get parentFingerprint() {
+          return __classPrivateFieldGet(this, _BIP44CoinTypeNode_node, "f").parentFingerprint;
+        }
+
+        get fingerprint() {
+          return __classPrivateFieldGet(this, _BIP44CoinTypeNode_node, "f").fingerprint;
+        }
+
+        get index() {
+          return __classPrivateFieldGet(this, _BIP44CoinTypeNode_node, "f").index;
+        }
+
+        get curve() {
+          return __classPrivateFieldGet(this, _BIP44CoinTypeNode_node, "f").curve;
+        }
+
+        get extendedKey() {
+          return __classPrivateFieldGet(this, _BIP44CoinTypeNode_node, "f").extendedKey;
+        }
+
+        async deriveBIP44AddressKey({
+          account = 0,
+          change = 0,
+          address_index
+        }) {
+          return await __classPrivateFieldGet(this, _BIP44CoinTypeNode_node, "f").derive(utils_1.getBIP44CoinTypeToAddressPathTuple({
+            account,
+            change,
+            address_index
+          }));
+        }
+
+        toJSON() {
+          return Object.assign(Object.assign({}, __classPrivateFieldGet(this, _BIP44CoinTypeNode_node, "f").toJSON()), {
+            coin_type: this.coin_type,
+            path: this.path
+          });
+        }
+
+      }
+
+      exports.BIP44CoinTypeNode = BIP44CoinTypeNode;
+      _BIP44CoinTypeNode_node = new WeakMap();
+
+      function validateCoinTypeNodeDepth(depth) {
+        if (depth !== exports.BIP_44_COIN_TYPE_DEPTH) {
+          throw new Error(`Invalid depth: Coin type nodes must be of depth ${exports.BIP_44_COIN_TYPE_DEPTH}. Received: "${depth}"`);
+        }
+      }
+
+      function validateCoinType(coin_type) {
+        if (typeof coin_type !== 'number' || !Number.isInteger(coin_type) || coin_type < 0) {
+          throw new Error('Invalid coin type: The specified coin type must be a non-negative integer number.');
+        }
+      }
+
+      async function deriveBIP44AddressKey(parentKeyOrNode, {
+        account = 0,
+        change = 0,
+        address_index
+      }) {
+        const path = utils_1.getBIP44CoinTypeToAddressPathTuple({
+          account,
+          change,
+          address_index
+        });
+        const node = await getNode(parentKeyOrNode);
+        const childNode = await SLIP10Node_1.deriveChildNode({
+          path,
+          node
+        });
+        return new BIP44Node_1.BIP44Node(childNode);
+      }
+
+      exports.deriveBIP44AddressKey = deriveBIP44AddressKey;
+
+      async function getBIP44AddressKeyDeriver(node, accountAndChangeIndices) {
+        const {
+          account = 0,
+          change = 0
+        } = accountAndChangeIndices || {};
+        const actualNode = await getNode(node);
+        const accountNode = utils_1.getHardenedBIP32NodeToken(account);
+        const changeNode = utils_1.getBIP32NodeToken(change);
+
+        const bip44AddressKeyDeriver = async (address_index, isHardened = false) => {
+          const slip10Node = await SLIP10Node_1.deriveChildNode({
+            path: [accountNode, changeNode, isHardened ? utils_1.getHardenedBIP32NodeToken(address_index) : utils_1.getUnhardenedBIP32NodeToken(address_index)],
+            node: actualNode
+          });
+          return new BIP44Node_1.BIP44Node(slip10Node);
+        };
+
+        bip44AddressKeyDeriver.coin_type = actualNode.coin_type;
+        bip44AddressKeyDeriver.path = utils_1.getBIP44ChangePathString(actualNode.path, {
+          account,
+          change
+        });
+        Object.freeze(bip44AddressKeyDeriver);
+        return bip44AddressKeyDeriver;
+      }
+
+      exports.getBIP44AddressKeyDeriver = getBIP44AddressKeyDeriver;
+
+      async function getNode(node) {
+        if (node instanceof BIP44CoinTypeNode) {
+          validateCoinTypeNodeDepth(node.depth);
+          return node;
+        }
+
+        if (typeof node === 'string') {
+          const bip44Node = await BIP44Node_1.BIP44Node.fromExtendedKey(node);
+          const coinTypeNode = await BIP44CoinTypeNode.fromNode(bip44Node, bip44Node.index - constants_1.BIP_32_HARDENED_OFFSET);
+          validateCoinTypeNodeDepth(coinTypeNode.depth);
+          return coinTypeNode;
+        }
+
+        return BIP44CoinTypeNode.fromJSON(node, node.coin_type);
+      }
+    }, {
+      "./BIP44Node": 14,
+      "./SLIP10Node": 15,
+      "./constants": 16,
+      "./utils": 27
+    }],
+    14: [function (require, module, exports) {
+      "use strict";
+
+      var __classPrivateFieldSet = this && this.__classPrivateFieldSet || function (receiver, state, value, kind, f) {
+        if (kind === "m") throw new TypeError("Private method is not writable");
+        if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
+        if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
+        return kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value), value;
+      };
+
+      var __classPrivateFieldGet = this && this.__classPrivateFieldGet || function (receiver, state, kind, f) {
+        if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
+        if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+        return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
+      };
+
+      var _BIP44Node_node;
+
+      Object.defineProperty(exports, "__esModule", {
+        value: true
+      });
+      exports.validateBIP44Depth = exports.BIP44Node = void 0;
+
+      const constants_1 = require("./constants");
+
+      const utils_1 = require("./utils");
+
+      const SLIP10Node_1 = require("./SLIP10Node");
+
+      const extended_keys_1 = require("./extended-keys");
+
+      class BIP44Node {
+        constructor(node) {
+          _BIP44Node_node.set(this, void 0);
+
+          __classPrivateFieldSet(this, _BIP44Node_node, node, "f");
+
+          Object.freeze(this);
+        }
+
+        static async fromJSON(json) {
+          return BIP44Node.fromExtendedKey(json);
+        }
+
+        static async fromExtendedKey(options) {
+          if (typeof options === 'string') {
+            const extendedKey = extended_keys_1.decodeExtendedKey(options);
+            const {
+              chainCode,
+              depth,
+              parentFingerprint,
+              index
+            } = extendedKey;
+
+            if (extendedKey.version === extended_keys_1.PRIVATE_KEY_VERSION) {
+              const {
+                privateKey
+              } = extendedKey;
+              return BIP44Node.fromExtendedKey({
+                depth,
+                parentFingerprint,
+                index,
+                privateKey,
+                chainCode
+              });
+            }
+
+            const {
+              publicKey
+            } = extendedKey;
+            return BIP44Node.fromExtendedKey({
+              depth,
+              parentFingerprint,
+              index,
+              publicKey,
+              chainCode
+            });
+          }
+
+          const {
+            privateKey,
+            publicKey,
+            chainCode,
+            depth,
+            parentFingerprint,
+            index
+          } = options;
+          validateBIP44Depth(depth);
+          const node = await SLIP10Node_1.SLIP10Node.fromExtendedKey({
+            privateKey,
+            publicKey,
+            chainCode,
+            depth,
+            parentFingerprint,
+            index,
+            curve: 'secp256k1'
+          });
+          return new BIP44Node(node);
+        }
+
+        static async fromDerivationPath({
+          derivationPath
+        }) {
+          validateBIP44Depth(derivationPath.length - 1);
+          validateBIP44DerivationPath(derivationPath, constants_1.MIN_BIP_44_DEPTH);
+          const node = await SLIP10Node_1.SLIP10Node.fromDerivationPath({
+            derivationPath,
+            curve: 'secp256k1'
+          });
+          return new BIP44Node(node);
+        }
+
+        get depth() {
+          return __classPrivateFieldGet(this, _BIP44Node_node, "f").depth;
+        }
+
+        get privateKeyBuffer() {
+          return __classPrivateFieldGet(this, _BIP44Node_node, "f").privateKeyBuffer;
+        }
+
+        get publicKeyBuffer() {
+          return __classPrivateFieldGet(this, _BIP44Node_node, "f").publicKeyBuffer;
+        }
+
+        get chainCodeBuffer() {
+          return __classPrivateFieldGet(this, _BIP44Node_node, "f").chainCodeBuffer;
+        }
+
+        get privateKey() {
+          return __classPrivateFieldGet(this, _BIP44Node_node, "f").privateKey;
+        }
+
+        get publicKey() {
+          return __classPrivateFieldGet(this, _BIP44Node_node, "f").publicKey;
+        }
+
+        get compressedPublicKeyBuffer() {
+          return __classPrivateFieldGet(this, _BIP44Node_node, "f").compressedPublicKeyBuffer;
+        }
+
+        get chainCode() {
+          return __classPrivateFieldGet(this, _BIP44Node_node, "f").chainCode;
+        }
+
+        get address() {
+          return __classPrivateFieldGet(this, _BIP44Node_node, "f").address;
+        }
+
+        get parentFingerprint() {
+          return __classPrivateFieldGet(this, _BIP44Node_node, "f").parentFingerprint;
+        }
+
+        get fingerprint() {
+          return __classPrivateFieldGet(this, _BIP44Node_node, "f").fingerprint;
+        }
+
+        get index() {
+          return __classPrivateFieldGet(this, _BIP44Node_node, "f").index;
+        }
+
+        get extendedKey() {
+          const data = {
+            depth: this.depth,
+            parentFingerprint: this.parentFingerprint,
+            index: this.index,
+            chainCode: this.chainCodeBuffer
+          };
+
+          if (this.privateKeyBuffer) {
+            return extended_keys_1.encodeExtendedKey(Object.assign(Object.assign({}, data), {
+              version: extended_keys_1.PRIVATE_KEY_VERSION,
+              privateKey: this.privateKeyBuffer
+            }));
+          }
+
+          return extended_keys_1.encodeExtendedKey(Object.assign(Object.assign({}, data), {
+            version: extended_keys_1.PUBLIC_KEY_VERSION,
+            publicKey: this.publicKeyBuffer
+          }));
+        }
+
+        get curve() {
+          return __classPrivateFieldGet(this, _BIP44Node_node, "f").curve;
+        }
+
+        neuter() {
+          const node = __classPrivateFieldGet(this, _BIP44Node_node, "f").neuter();
+
+          return new BIP44Node(node);
+        }
+
+        async derive(path) {
+          if (this.depth === constants_1.MAX_BIP_44_DEPTH) {
+            throw new Error('Illegal operation: This HD tree node is already a leaf node.');
+          }
+
+          const newDepth = this.depth + path.length;
+          validateBIP44Depth(newDepth);
+          validateBIP44DerivationPath(path, this.depth + 1);
+          const node = await __classPrivateFieldGet(this, _BIP44Node_node, "f").derive(path);
+          return new BIP44Node(node);
+        }
+
+        toJSON() {
+          return {
+            depth: this.depth,
+            parentFingerprint: this.parentFingerprint,
+            index: this.index,
+            privateKey: this.privateKey,
+            publicKey: this.publicKey,
+            chainCode: this.chainCode
+          };
+        }
+
+      }
+
+      exports.BIP44Node = BIP44Node;
+      _BIP44Node_node = new WeakMap();
+
+      function validateBIP44Depth(depth) {
+        SLIP10Node_1.validateBIP32Depth(depth);
+
+        if (depth < constants_1.MIN_BIP_44_DEPTH || depth > constants_1.MAX_BIP_44_DEPTH) {
+          throw new Error(`Invalid HD tree path depth: The depth must be a positive integer N such that 0 <= N <= 5. Received: "${depth}"`);
+        }
+      }
+
+      exports.validateBIP44Depth = validateBIP44Depth;
+
+      function validateBIP44DerivationPath(path, startingDepth) {
+        path.forEach((nodeToken, index) => {
+          const currentDepth = startingDepth + index;
+
+          switch (currentDepth) {
+            case constants_1.MIN_BIP_44_DEPTH:
+              if (!constants_1.BIP_39_PATH_REGEX.test(nodeToken)) {
+                throw new Error('Invalid derivation path: The "m" / seed node (depth 0) must be a BIP-39 node.');
+              }
+
+              break;
+
+            case 1:
+              if (nodeToken !== constants_1.BIP44PurposeNodeToken) {
+                throw new Error(`Invalid derivation path: The "purpose" node (depth 1) must be the string "${constants_1.BIP44PurposeNodeToken}".`);
+              }
+
+              break;
+
+            case 2:
+              if (!constants_1.BIP_32_PATH_REGEX.test(nodeToken) || !utils_1.isHardened(nodeToken)) {
+                throw new Error('Invalid derivation path: The "coin_type" node (depth 2) must be a hardened BIP-32 node.');
+              }
+
+              break;
+
+            case 3:
+              if (!constants_1.BIP_32_PATH_REGEX.test(nodeToken) || !utils_1.isHardened(nodeToken)) {
+                throw new Error('Invalid derivation path: The "account" node (depth 3) must be a hardened BIP-32 node.');
+              }
+
+              break;
+
+            case 4:
+              if (!constants_1.BIP_32_PATH_REGEX.test(nodeToken)) {
+                throw new Error('Invalid derivation path: The "change" node (depth 4) must be a BIP-32 node.');
+              }
+
+              break;
+
+            case constants_1.MAX_BIP_44_DEPTH:
+              if (!constants_1.BIP_32_PATH_REGEX.test(nodeToken)) {
+                throw new Error('Invalid derivation path: The "address_index" node (depth 5) must be a BIP-32 node.');
+              }
+
+              break;
+
+            default:
+              throw new Error(`Invalid derivation path: The path exceeds the maximum BIP-44 depth.`);
+          }
+        });
+      }
+    }, {
+      "./SLIP10Node": 15,
+      "./constants": 16,
+      "./extended-keys": 25,
+      "./utils": 27
+    }],
+    15: [function (require, module, exports) {
+      "use strict";
+
+      Object.defineProperty(exports, "__esModule", {
+        value: true
+      });
+      exports.deriveChildNode = exports.validateParentFingerprint = exports.validateBIP32Depth = exports.SLIP10Node = void 0;
+
+      const constants_1 = require("./constants");
+
+      const curves_1 = require("./curves");
+
+      const derivation_1 = require("./derivation");
+
+      const bip32_1 = require("./derivers/bip32");
+
+      const utils_1 = require("./utils");
+
+      class SLIP10Node {
+        constructor({
+          depth,
+          parentFingerprint,
+          index,
+          chainCode,
+          privateKey,
+          publicKey,
+          curve
+        }) {
+          this.depth = depth;
+          this.parentFingerprint = parentFingerprint;
+          this.index = index;
+          this.chainCodeBuffer = chainCode;
+          this.privateKeyBuffer = privateKey;
+          this.publicKeyBuffer = publicKey;
+          this.curve = curve;
+          Object.freeze(this);
+        }
+
+        static async fromJSON(json) {
+          return SLIP10Node.fromExtendedKey(json);
+        }
+
+        static async fromExtendedKey({
+          depth,
+          parentFingerprint,
+          index,
+          privateKey,
+          publicKey,
+          chainCode,
+          curve
+        }) {
+          const chainCodeBuffer = utils_1.getBuffer(chainCode, constants_1.BUFFER_KEY_LENGTH);
+          validateCurve(curve);
+          validateBIP32Depth(depth);
+          utils_1.validateBIP32Index(index);
+          validateParentFingerprint(parentFingerprint);
+
+          if (privateKey) {
+            const privateKeyBuffer = utils_1.getBuffer(privateKey, constants_1.BUFFER_KEY_LENGTH);
+            return new SLIP10Node({
+              depth,
+              parentFingerprint,
+              index,
+              chainCode: chainCodeBuffer,
+              privateKey: privateKeyBuffer,
+              publicKey: await curves_1.getCurveByName(curve).getPublicKey(privateKey),
+              curve
+            });
+          }
+
+          if (publicKey) {
+            const publicKeyBuffer = utils_1.getBuffer(publicKey, curves_1.getCurveByName(curve).publicKeyLength);
+            return new SLIP10Node({
+              depth,
+              parentFingerprint,
+              index,
+              chainCode: chainCodeBuffer,
+              publicKey: publicKeyBuffer,
+              curve
+            });
+          }
+
+          throw new Error('Invalid options: Must provide either a private key or a public key.');
+        }
+
+        static async fromDerivationPath({
+          derivationPath,
+          curve
+        }) {
+          validateCurve(curve);
+
+          if (!derivationPath) {
+            throw new Error('Invalid options: Must provide a derivation path.');
+          }
+
+          if (derivationPath.length === 0) {
+            throw new Error('Invalid derivation path: May not specify an empty derivation path.');
+          }
+
+          return await derivation_1.deriveKeyFromPath({
+            path: derivationPath,
+            depth: derivationPath.length - 1,
+            curve
+          });
+        }
+
+        get chainCode() {
+          return this.chainCodeBuffer.toString('hex');
+        }
+
+        get privateKey() {
+          var _a;
+
+          return (_a = this.privateKeyBuffer) === null || _a === void 0 ? void 0 : _a.toString('hex');
+        }
+
+        get publicKey() {
+          return this.publicKeyBuffer.toString('hex');
+        }
+
+        get compressedPublicKeyBuffer() {
+          return curves_1.getCurveByName(this.curve).compressPublicKey(this.publicKeyBuffer);
+        }
+
+        get address() {
+          if (this.curve !== 'secp256k1') {
+            throw new Error('Unable to get address for this node: Only secp256k1 is supported.');
+          }
+
+          return `0x${bip32_1.publicKeyToEthAddress(this.publicKeyBuffer).toString('hex')}`;
+        }
+
+        get fingerprint() {
+          return utils_1.getFingerprint(this.compressedPublicKeyBuffer);
+        }
+
+        neuter() {
+          return new SLIP10Node({
+            depth: this.depth,
+            parentFingerprint: this.parentFingerprint,
+            index: this.index,
+            chainCode: this.chainCodeBuffer,
+            publicKey: this.publicKeyBuffer,
+            curve: this.curve
+          });
+        }
+
+        async derive(path) {
+          return await deriveChildNode({
+            path,
+            node: this
+          });
+        }
+
+        toJSON() {
+          return {
+            depth: this.depth,
+            parentFingerprint: this.parentFingerprint,
+            index: this.index,
+            curve: this.curve,
+            privateKey: this.privateKey,
+            publicKey: this.publicKey,
+            chainCode: this.chainCode
+          };
+        }
+
+      }
+
+      exports.SLIP10Node = SLIP10Node;
+
+      function validateCurve(curveName) {
+        if (!curveName || typeof curveName !== 'string') {
+          throw new Error('Invalid curve: Must specify a curve.');
+        }
+
+        if (!Object.keys(curves_1.curves).includes(curveName)) {
+          throw new Error(`Invalid curve: Only the following curves are supported: ${Object.keys(curves_1.curves).join(', ')}.`);
+        }
+      }
+
+      function validateBIP32Depth(depth) {
+        if (!utils_1.isValidInteger(depth)) {
+          throw new Error(`Invalid HD tree path depth: The depth must be a positive integer. Received: "${depth}".`);
+        }
+      }
+
+      exports.validateBIP32Depth = validateBIP32Depth;
+
+      function validateParentFingerprint(parentFingerprint) {
+        if (!utils_1.isValidInteger(parentFingerprint)) {
+          throw new Error(`Invalid parent fingerprint: The fingerprint must be a positive integer. Received: "${parentFingerprint}".`);
+        }
+      }
+
+      exports.validateParentFingerprint = validateParentFingerprint;
+
+      async function deriveChildNode({
+        path,
+        node
+      }) {
+        if (path.length === 0) {
+          throw new Error('Invalid HD tree derivation path: Deriving a path of length 0 is not defined.');
+        }
+
+        const newDepth = node.depth + path.length;
+        validateBIP32Depth(newDepth);
+        return await derivation_1.deriveKeyFromPath({
+          path,
+          node,
+          depth: newDepth
+        });
+      }
+
+      exports.deriveChildNode = deriveChildNode;
+    }, {
+      "./constants": 16,
+      "./curves": 19,
+      "./derivation": 21,
+      "./derivers/bip32": 22,
+      "./utils": 27
+    }],
+    16: [function (require, module, exports) {
+      "use strict";
+
+      Object.defineProperty(exports, "__esModule", {
+        value: true
+      });
+      exports.BIP_32_HARDENED_OFFSET = exports.BIP_39_PATH_REGEX = exports.BIP_32_PATH_REGEX = exports.BIP44PurposeNodeToken = exports.MAX_BIP_44_DEPTH = exports.MIN_BIP_44_DEPTH = exports.HEXADECIMAL_KEY_LENGTH = exports.BUFFER_KEY_LENGTH = exports.BUFFER_EXTENDED_KEY_LENGTH = void 0;
+      exports.BUFFER_EXTENDED_KEY_LENGTH = 64;
+      exports.BUFFER_KEY_LENGTH = 32;
+      exports.HEXADECIMAL_KEY_LENGTH = 64;
+      exports.MIN_BIP_44_DEPTH = 0;
+      exports.MAX_BIP_44_DEPTH = 5;
+      exports.BIP44PurposeNodeToken = `bip32:44'`;
+      exports.BIP_32_PATH_REGEX = /^bip32:\d+'?$/u;
+      exports.BIP_39_PATH_REGEX = /^bip39:([a-z]+){1}( [a-z]+){11,23}$/u;
+      exports.BIP_32_HARDENED_OFFSET = 0x80000000;
+    }, {}],
+    17: [function (require, module, exports) {
+      "use strict";
+
+      var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
+        if (k2 === undefined) k2 = k;
+        Object.defineProperty(o, k2, {
+          enumerable: true,
+          get: function () {
+            return m[k];
+          }
+        });
+      } : function (o, m, k, k2) {
+        if (k2 === undefined) k2 = k;
+        o[k2] = m[k];
+      });
+
+      var __setModuleDefault = this && this.__setModuleDefault || (Object.create ? function (o, v) {
+        Object.defineProperty(o, "default", {
+          enumerable: true,
+          value: v
+        });
+      } : function (o, v) {
+        o["default"] = v;
+      });
+
+      var __importStar = this && this.__importStar || function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+
+        __setModuleDefault(result, mod);
+
+        return result;
+      };
+
+      Object.defineProperty(exports, "__esModule", {
+        value: true
+      });
+      exports.mod = exports.getCurveByName = exports.curves = void 0;
+
+      const secp256k1_1 = require("@noble/secp256k1");
+
+      const secp256k1 = __importStar(require("./secp256k1"));
+
+      const ed25519 = __importStar(require("./ed25519"));
+
+      exports.curves = {
+        secp256k1,
+        ed25519
+      };
+
+      function getCurveByName(curveName) {
+        return exports.curves[curveName];
+      }
+
+      exports.getCurveByName = getCurveByName;
+      exports.mod = secp256k1_1.utils.mod;
+    }, {
+      "./ed25519": 18,
+      "./secp256k1": 20,
+      "@noble/secp256k1": 40
+    }],
+    18: [function (require, module, exports) {
+      (function () {
+        (function () {
+          "use strict";
+
+          Object.defineProperty(exports, "__esModule", {
+            value: true
+          });
+          exports.decompressPublicKey = exports.compressPublicKey = exports.publicAdd = exports.getPublicKey = exports.publicKeyLength = exports.deriveUnhardenedKeys = exports.isValidPrivateKey = exports.secret = exports.name = exports.curve = void 0;
+
+          const ed25519_1 = require("@noble/ed25519");
+
+          var ed25519_2 = require("@noble/ed25519");
+
+          Object.defineProperty(exports, "curve", {
+            enumerable: true,
+            get: function () {
+              return ed25519_2.CURVE;
+            }
+          });
+          exports.name = 'ed25519';
+          exports.secret = Buffer.from('ed25519 seed', 'utf8');
+
+          const isValidPrivateKey = _privateKey => true;
+
+          exports.isValidPrivateKey = isValidPrivateKey;
+          exports.deriveUnhardenedKeys = false;
+          exports.publicKeyLength = 33;
+
+          const getPublicKey = async (privateKey, _compressed) => {
+            const publicKey = await ed25519_1.getPublicKey(privateKey);
+            return Buffer.concat([Buffer.alloc(1, 0), publicKey]);
+          };
+
+          exports.getPublicKey = getPublicKey;
+
+          const publicAdd = (_publicKey, _tweak) => {
+            throw new Error('Ed25519 does not support public key derivation.');
+          };
+
+          exports.publicAdd = publicAdd;
+
+          const compressPublicKey = publicKey => {
+            return publicKey;
+          };
+
+          exports.compressPublicKey = compressPublicKey;
+
+          const decompressPublicKey = publicKey => {
+            return publicKey;
+          };
+
+          exports.decompressPublicKey = decompressPublicKey;
+        }).call(this);
+      }).call(this, require("buffer").Buffer);
+    }, {
+      "@noble/ed25519": 28,
+      "buffer": 56
+    }],
+    19: [function (require, module, exports) {
+      "use strict";
+
+      var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
+        if (k2 === undefined) k2 = k;
+        Object.defineProperty(o, k2, {
+          enumerable: true,
+          get: function () {
+            return m[k];
+          }
+        });
+      } : function (o, m, k, k2) {
+        if (k2 === undefined) k2 = k;
+        o[k2] = m[k];
+      });
+
+      var __setModuleDefault = this && this.__setModuleDefault || (Object.create ? function (o, v) {
+        Object.defineProperty(o, "default", {
+          enumerable: true,
+          value: v
+        });
+      } : function (o, v) {
+        o["default"] = v;
+      });
+
+      var __exportStar = this && this.__exportStar || function (m, exports) {
+        for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+      };
+
+      var __importStar = this && this.__importStar || function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+
+        __setModuleDefault(result, mod);
+
+        return result;
+      };
+
+      Object.defineProperty(exports, "__esModule", {
+        value: true
+      });
+      exports.ed25519 = exports.secp256k1 = void 0;
+
+      __exportStar(require("./curve"), exports);
+
+      exports.secp256k1 = __importStar(require("./secp256k1"));
+      exports.ed25519 = __importStar(require("./ed25519"));
+    }, {
+      "./curve": 17,
+      "./ed25519": 18,
+      "./secp256k1": 20
+    }],
+    20: [function (require, module, exports) {
+      (function () {
+        (function () {
+          "use strict";
+
+          Object.defineProperty(exports, "__esModule", {
+            value: true
+          });
+          exports.decompressPublicKey = exports.compressPublicKey = exports.publicAdd = exports.getPublicKey = exports.publicKeyLength = exports.deriveUnhardenedKeys = exports.secret = exports.name = exports.isValidPrivateKey = exports.curve = void 0;
+
+          const secp256k1_1 = require("@noble/secp256k1");
+
+          var secp256k1_2 = require("@noble/secp256k1");
+
+          Object.defineProperty(exports, "curve", {
+            enumerable: true,
+            get: function () {
+              return secp256k1_2.CURVE;
+            }
+          });
+          exports.isValidPrivateKey = secp256k1_1.utils.isValidPrivateKey;
+          exports.name = 'secp256k1';
+          exports.secret = Buffer.from('Bitcoin seed', 'utf8');
+          exports.deriveUnhardenedKeys = true;
+          exports.publicKeyLength = 65;
+
+          const getPublicKey = (privateKey, compressed) => Buffer.from(secp256k1_1.getPublicKey(privateKey, compressed));
+
+          exports.getPublicKey = getPublicKey;
+
+          const publicAdd = (publicKey, tweak) => {
+            const point = secp256k1_1.Point.fromHex(publicKey);
+            const newPoint = point.add(secp256k1_1.Point.fromPrivateKey(tweak));
+            newPoint.assertValidity();
+            return Buffer.from(newPoint.toRawBytes(false));
+          };
+
+          exports.publicAdd = publicAdd;
+
+          const compressPublicKey = publicKey => {
+            const point = secp256k1_1.Point.fromHex(publicKey);
+            return Buffer.from(point.toRawBytes(true));
+          };
+
+          exports.compressPublicKey = compressPublicKey;
+
+          const decompressPublicKey = publicKey => {
+            const point = secp256k1_1.Point.fromHex(publicKey);
+            return Buffer.from(point.toRawBytes(false));
+          };
+
+          exports.decompressPublicKey = decompressPublicKey;
+        }).call(this);
+      }).call(this, require("buffer").Buffer);
+    }, {
+      "@noble/secp256k1": 40,
+      "buffer": 56
+    }],
+    21: [function (require, module, exports) {
+      "use strict";
+
+      Object.defineProperty(exports, "__esModule", {
+        value: true
+      });
+      exports.validatePathSegment = exports.deriveKeyFromPath = void 0;
+
+      const constants_1 = require("./constants");
+
+      const derivers_1 = require("./derivers");
+
+      const SLIP10Node_1 = require("./SLIP10Node");
+
+      const BIP44Node_1 = require("./BIP44Node");
+
+      const BIP44CoinTypeNode_1 = require("./BIP44CoinTypeNode");
+
+      const curves_1 = require("./curves");
+
+      async function deriveKeyFromPath(args) {
+        const {
+          path,
+          depth = path.length
+        } = args;
+        const node = 'node' in args ? args.node : undefined;
+        const curve = 'curve' in args ? args.curve : node === null || node === void 0 ? void 0 : node.curve;
+
+        if (node && !(node instanceof SLIP10Node_1.SLIP10Node) && !(node instanceof BIP44Node_1.BIP44Node) && !(node instanceof BIP44CoinTypeNode_1.BIP44CoinTypeNode)) {
+          throw new Error('Invalid arguments: Node must be a SLIP-10 node or a BIP-44 node when provided.');
+        }
+
+        if (!curve) {
+          throw new Error('Invalid arguments: Must specify either a parent node or curve.');
+        }
+
+        validatePathSegment(path, Boolean(node === null || node === void 0 ? void 0 : node.privateKey) || Boolean(node === null || node === void 0 ? void 0 : node.publicKey), depth);
+        return await path.reduce(async (promise, pathNode) => {
+          const derivedNode = await promise;
+          const [pathType, pathPart] = pathNode.split(':');
+
+          if (!hasDeriver(pathType)) {
+            throw new Error(`Unknown derivation type: "${pathType}"`);
+          }
+
+          const deriver = derivers_1.derivers[pathType];
+          return await deriver.deriveChildKey({
+            path: pathPart,
+            node: derivedNode,
+            curve: curves_1.getCurveByName(curve)
+          });
+        }, Promise.resolve(node));
+      }
+
+      exports.deriveKeyFromPath = deriveKeyFromPath;
+
+      function hasDeriver(pathType) {
+        return pathType in derivers_1.derivers;
+      }
+
+      function validatePathSegment(path, hasKey, depth) {
+        if (path.length === 0) {
+          throw new Error(`Invalid HD path segment: The segment must not be empty.`);
+        }
+
+        if (path.length - 1 > constants_1.MAX_BIP_44_DEPTH) {
+          throw new Error(`Invalid HD path segment: The segment cannot exceed a 0-indexed depth of 5.`);
+        }
+
+        let startsWithBip39 = false;
+        path.forEach((node, index) => {
+          if (index === 0) {
+            startsWithBip39 = constants_1.BIP_39_PATH_REGEX.test(node);
+
+            if (!startsWithBip39 && !constants_1.BIP_32_PATH_REGEX.test(node)) {
+              throw getMalformedError();
+            }
+          } else if (!constants_1.BIP_32_PATH_REGEX.test(node)) {
+            throw getMalformedError();
+          }
+        });
+
+        if (depth === constants_1.MIN_BIP_44_DEPTH && (!startsWithBip39 || path.length !== 1)) {
+          throw new Error(`Invalid HD path segment: The segment must consist of a single BIP-39 node for depths of ${constants_1.MIN_BIP_44_DEPTH}. Received: "${path}".`);
+        }
+
+        if (!hasKey && !startsWithBip39) {
+          throw new Error('Invalid derivation parameters: Must specify parent key if the first node of the path segment is not a BIP-39 node.');
+        }
+
+        if (hasKey && startsWithBip39) {
+          throw new Error('Invalid derivation parameters: May not specify parent key if the path segment starts with a BIP-39 node.');
+        }
+      }
+
+      exports.validatePathSegment = validatePathSegment;
+
+      function getMalformedError() {
+        throw new Error('Invalid HD path segment: The path segment is malformed.');
+      }
+    }, {
+      "./BIP44CoinTypeNode": 13,
+      "./BIP44Node": 14,
+      "./SLIP10Node": 15,
+      "./constants": 16,
+      "./curves": 19,
+      "./derivers": 24
+    }],
+    22: [function (require, module, exports) {
+      (function () {
+        (function () {
+          "use strict";
+
+          Object.defineProperty(exports, "__esModule", {
+            value: true
+          });
+          exports.privateAdd = exports.deriveChildKey = exports.publicKeyToEthAddress = exports.privateKeyToEthAddress = void 0;
+
+          const sha3_1 = require("@noble/hashes/sha3");
+
+          const hmac_1 = require("@noble/hashes/hmac");
+
+          const sha512_1 = require("@noble/hashes/sha512");
+
+          const constants_1 = require("../constants");
+
+          const utils_1 = require("../utils");
+
+          const curves_1 = require("../curves");
+
+          const SLIP10Node_1 = require("../SLIP10Node");
+
+          function privateKeyToEthAddress(key) {
+            if (!Buffer.isBuffer(key) || !utils_1.isValidBufferKey(key, constants_1.BUFFER_KEY_LENGTH)) {
+              throw new Error('Invalid key: The key must be a 32-byte, non-zero Buffer.');
+            }
+
+            const publicKey = curves_1.secp256k1.getPublicKey(key, false);
+            return publicKeyToEthAddress(publicKey);
+          }
+
+          exports.privateKeyToEthAddress = privateKeyToEthAddress;
+
+          function publicKeyToEthAddress(key) {
+            if (!Buffer.isBuffer(key) || !utils_1.isValidBufferKey(key, curves_1.secp256k1.publicKeyLength)) {
+              throw new Error('Invalid key: The key must be a 65-byte, non-zero Buffer.');
+            }
+
+            return Buffer.from(sha3_1.keccak_256(key.slice(1)).slice(-20));
+          }
+
+          exports.publicKeyToEthAddress = publicKeyToEthAddress;
+
+          async function deriveChildKey({
+            path,
+            node,
+            curve = curves_1.secp256k1
+          }) {
+            const isHardened = path.includes(`'`);
+
+            if (!isHardened && !curve.deriveUnhardenedKeys) {
+              throw new Error(`Invalid path: Cannot derive unhardened child keys with ${curve.name}.`);
+            }
+
+            if (!node) {
+              throw new Error('Invalid parameters: Must specify a node to derive from.');
+            }
+
+            if (isHardened && !node.privateKey) {
+              throw new Error('Invalid parameters: Cannot derive hardened child keys without a private key.');
+            }
+
+            const indexPart = path.split(`'`)[0];
+            const childIndex = parseInt(indexPart, 10);
+
+            if (!/^\d+$/u.test(indexPart) || !Number.isInteger(childIndex) || childIndex < 0 || childIndex >= constants_1.BIP_32_HARDENED_OFFSET) {
+              throw new Error(`Invalid BIP-32 index: The index must be a non-negative decimal integer less than ${constants_1.BIP_32_HARDENED_OFFSET}.`);
+            }
+
+            if (node.privateKeyBuffer) {
+              const secretExtension = await deriveSecretExtension({
+                privateKey: node.privateKeyBuffer,
+                childIndex,
+                isHardened,
+                curve
+              });
+              const {
+                privateKey,
+                chainCode
+              } = await generateKey({
+                privateKey: node.privateKeyBuffer,
+                chainCode: node.chainCodeBuffer,
+                secretExtension,
+                curve
+              });
+              return SLIP10Node_1.SLIP10Node.fromExtendedKey({
+                privateKey,
+                chainCode,
+                depth: node.depth + 1,
+                parentFingerprint: node.fingerprint,
+                index: childIndex + (isHardened ? constants_1.BIP_32_HARDENED_OFFSET : 0),
+                curve: curve.name
+              });
+            }
+
+            const publicExtension = await derivePublicExtension({
+              parentPublicKey: node.compressedPublicKeyBuffer,
+              childIndex,
+              curve
+            });
+            const {
+              publicKey,
+              chainCode
+            } = generatePublicKey({
+              publicKey: node.compressedPublicKeyBuffer,
+              chainCode: node.chainCodeBuffer,
+              publicExtension,
+              curve
+            });
+            return SLIP10Node_1.SLIP10Node.fromExtendedKey({
+              publicKey,
+              chainCode,
+              depth: node.depth + 1,
+              parentFingerprint: node.fingerprint,
+              index: childIndex,
+              curve: curve.name
+            });
+          }
+
+          exports.deriveChildKey = deriveChildKey;
+
+          async function deriveSecretExtension({
+            privateKey,
+            childIndex,
+            isHardened,
+            curve
+          }) {
+            if (isHardened) {
+              const indexBuffer = Buffer.allocUnsafe(4);
+              indexBuffer.writeUInt32BE(childIndex + constants_1.BIP_32_HARDENED_OFFSET, 0);
+              const pk = privateKey;
+              const zb = Buffer.alloc(1, 0);
+              return Buffer.concat([zb, pk, indexBuffer]);
+            }
+
+            const indexBuffer = Buffer.allocUnsafe(4);
+            indexBuffer.writeUInt32BE(childIndex, 0);
+            const parentPublicKey = await curve.getPublicKey(privateKey, true);
+            return Buffer.concat([parentPublicKey, indexBuffer]);
+          }
+
+          async function derivePublicExtension({
+            parentPublicKey,
+            childIndex
+          }) {
+            const indexBuffer = Buffer.alloc(4);
+            indexBuffer.writeUInt32BE(childIndex, 0);
+            return Buffer.concat([parentPublicKey, indexBuffer]);
+          }
+
+          function privateAdd(privateKeyBuffer, tweakBuffer, curve) {
+            const privateKey = utils_1.bytesToNumber(privateKeyBuffer);
+            const tweak = utils_1.bytesToNumber(tweakBuffer);
+
+            if (tweak >= curve.curve.n) {
+              throw new Error('Invalid tweak: Tweak is larger than the curve order.');
+            }
+
+            const added = curves_1.mod(privateKey + tweak, curve.curve.n);
+
+            if (!curve.isValidPrivateKey(added)) {
+              throw new Error('Invalid private key or tweak: The resulting private key is invalid.');
+            }
+
+            return utils_1.hexStringToBuffer(added.toString(16).padStart(64, '0'));
+          }
+
+          exports.privateAdd = privateAdd;
+
+          async function generateKey({
+            privateKey,
+            chainCode,
+            secretExtension,
+            curve
+          }) {
+            const entropy = hmac_1.hmac(sha512_1.sha512, chainCode, secretExtension);
+            const keyMaterial = Buffer.from(entropy.slice(0, 32));
+            const childChainCode = Buffer.from(entropy.slice(32));
+
+            if (curve.name === 'ed25519') {
+              const publicKey = await curve.getPublicKey(keyMaterial);
+              return {
+                privateKey: keyMaterial,
+                publicKey,
+                chainCode: childChainCode
+              };
+            }
+
+            const childPrivateKey = privateAdd(privateKey, keyMaterial, curve);
+            const publicKey = await curve.getPublicKey(childPrivateKey);
+            return {
+              privateKey: childPrivateKey,
+              publicKey,
+              chainCode: childChainCode
+            };
+          }
+
+          function generatePublicKey({
+            publicKey,
+            chainCode,
+            publicExtension,
+            curve
+          }) {
+            const entropy = hmac_1.hmac(sha512_1.sha512, chainCode, publicExtension);
+            const keyMaterial = entropy.slice(0, 32);
+            const childChainCode = entropy.slice(32);
+            const childPublicKey = curve.publicAdd(publicKey, Buffer.from(keyMaterial));
+            return {
+              publicKey: Buffer.from(childPublicKey),
+              chainCode: Buffer.from(childChainCode)
+            };
+          }
+        }).call(this);
+      }).call(this, require("buffer").Buffer);
+    }, {
+      "../SLIP10Node": 15,
+      "../constants": 16,
+      "../curves": 19,
+      "../utils": 27,
+      "@noble/hashes/hmac": 33,
+      "@noble/hashes/sha3": 37,
+      "@noble/hashes/sha512": 38,
+      "buffer": 56
+    }],
+    23: [function (require, module, exports) {
+      (function () {
+        (function () {
+          "use strict";
+
+          Object.defineProperty(exports, "__esModule", {
+            value: true
+          });
+          exports.createBip39KeyFromSeed = exports.deriveChildKey = exports.bip39MnemonicToMultipath = void 0;
+
+          const bip39_1 = require("@scure/bip39");
+
+          const hmac_1 = require("@noble/hashes/hmac");
+
+          const sha512_1 = require("@noble/hashes/sha512");
+
+          const curves_1 = require("../curves");
+
+          const SLIP10Node_1 = require("../SLIP10Node");
+
+          function bip39MnemonicToMultipath(mnemonic) {
+            return `bip39:${mnemonic.toLowerCase().trim()}`;
+          }
+
+          exports.bip39MnemonicToMultipath = bip39MnemonicToMultipath;
+
+          async function deriveChildKey({
+            path,
+            curve
+          }) {
+            return createBip39KeyFromSeed(Buffer.from(bip39_1.mnemonicToSeedSync(path)), curve);
+          }
+
+          exports.deriveChildKey = deriveChildKey;
+
+          async function createBip39KeyFromSeed(seed, curve = curves_1.secp256k1) {
+            const key = Buffer.from(hmac_1.hmac(sha512_1.sha512, curve.secret, seed));
+            const privateKey = key.slice(0, 32);
+            const chainCode = key.slice(32);
+            return SLIP10Node_1.SLIP10Node.fromExtendedKey({
+              privateKey,
+              chainCode,
+              depth: 0,
+              parentFingerprint: 0,
+              index: 0,
+              curve: curve.name
+            });
+          }
+
+          exports.createBip39KeyFromSeed = createBip39KeyFromSeed;
+        }).call(this);
+      }).call(this, require("buffer").Buffer);
+    }, {
+      "../SLIP10Node": 15,
+      "../curves": 19,
+      "@noble/hashes/hmac": 33,
+      "@noble/hashes/sha512": 38,
+      "@scure/bip39": 42,
+      "buffer": 56
+    }],
+    24: [function (require, module, exports) {
+      "use strict";
+
+      var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
+        if (k2 === undefined) k2 = k;
+        Object.defineProperty(o, k2, {
+          enumerable: true,
+          get: function () {
+            return m[k];
+          }
+        });
+      } : function (o, m, k, k2) {
+        if (k2 === undefined) k2 = k;
+        o[k2] = m[k];
+      });
+
+      var __setModuleDefault = this && this.__setModuleDefault || (Object.create ? function (o, v) {
+        Object.defineProperty(o, "default", {
+          enumerable: true,
+          value: v
+        });
+      } : function (o, v) {
+        o["default"] = v;
+      });
+
+      var __importStar = this && this.__importStar || function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+
+        __setModuleDefault(result, mod);
+
+        return result;
+      };
+
+      Object.defineProperty(exports, "__esModule", {
+        value: true
+      });
+      exports.derivers = void 0;
+
+      const bip32 = __importStar(require("./bip32"));
+
+      const bip39 = __importStar(require("./bip39"));
+
+      exports.derivers = {
+        bip32,
+        bip39
+      };
+    }, {
+      "./bip32": 22,
+      "./bip39": 23
+    }],
+    25: [function (require, module, exports) {
+      (function () {
+        (function () {
+          "use strict";
+
+          Object.defineProperty(exports, "__esModule", {
+            value: true
+          });
+          exports.encodeExtendedKey = exports.decodeExtendedKey = exports.PRIVATE_KEY_VERSION = exports.PUBLIC_KEY_VERSION = void 0;
+
+          const utils_1 = require("./utils");
+
+          const BIP44Node_1 = require("./BIP44Node");
+
+          const secp256k1_1 = require("./curves/secp256k1");
+
+          exports.PUBLIC_KEY_VERSION = 0x0488b21e;
+          exports.PRIVATE_KEY_VERSION = 0x0488ade4;
+
+          const decodeExtendedKey = extendedKey => {
+            const buffer = utils_1.decodeBase58check(extendedKey);
+
+            if (buffer.length !== 78) {
+              throw new Error(`Invalid extended key: Expected a length of 78, got ${buffer.length}.`);
+            }
+
+            const version = buffer.readUInt32BE(0);
+            const depth = buffer.readUInt8(4);
+            BIP44Node_1.validateBIP44Depth(depth);
+            const parentFingerprint = buffer.readUInt32BE(5);
+            const index = buffer.readUInt32BE(9);
+            const chainCode = buffer.slice(13, 45);
+
+            if (!utils_1.isValidBufferKey(chainCode, 32)) {
+              throw new Error(`Invalid extended key: Chain code must be a 32-byte non-zero Buffer.`);
+            }
+
+            const key = buffer.slice(45, 78);
+
+            if (!utils_1.isValidBufferKey(key, 33)) {
+              throw new Error(`Invalid extended key: Key must be a 33-byte non-zero Buffer.`);
+            }
+
+            if (version === exports.PUBLIC_KEY_VERSION) {
+              if (key.readUInt8(0) !== 0x02 && key.readUInt8(0) !== 0x03) {
+                throw new Error(`Invalid extended key: Public key must start with 0x02 or 0x03.`);
+              }
+
+              return {
+                version,
+                depth,
+                parentFingerprint,
+                index,
+                chainCode,
+                publicKey: secp256k1_1.decompressPublicKey(key)
+              };
+            }
+
+            if (version === exports.PRIVATE_KEY_VERSION) {
+              if (key.readUInt8(0) !== 0x00) {
+                throw new Error(`Invalid extended key: Private key must start with 0x00.`);
+              }
+
+              return {
+                version,
+                depth,
+                parentFingerprint,
+                index,
+                chainCode,
+                privateKey: key.slice(1)
+              };
+            }
+
+            throw new Error(`Invalid extended key: Expected a public (xpub) or private key (xprv) version.`);
+          };
+
+          exports.decodeExtendedKey = decodeExtendedKey;
+
+          const encodeExtendedKey = extendedKey => {
+            const {
+              version,
+              depth,
+              parentFingerprint,
+              index,
+              chainCode
+            } = extendedKey;
+            const buffer = Buffer.alloc(78);
+            buffer.writeUInt32BE(version, 0);
+            buffer.writeUInt8(depth, 4);
+            buffer.writeUInt32BE(parentFingerprint, 5);
+            buffer.writeUInt32BE(index, 9);
+            chainCode.copy(buffer, 13);
+
+            if (extendedKey.version === exports.PUBLIC_KEY_VERSION) {
+              const {
+                publicKey
+              } = extendedKey;
+              const compressedPublicKey = secp256k1_1.compressPublicKey(publicKey);
+              compressedPublicKey.copy(buffer, 45);
+            }
+
+            if (extendedKey.version === exports.PRIVATE_KEY_VERSION) {
+              const {
+                privateKey
+              } = extendedKey;
+              privateKey.copy(buffer, 46);
+            }
+
+            return utils_1.encodeBase58check(buffer);
+          };
+
+          exports.encodeExtendedKey = encodeExtendedKey;
+        }).call(this);
+      }).call(this, require("buffer").Buffer);
+    }, {
+      "./BIP44Node": 14,
+      "./curves/secp256k1": 20,
+      "./utils": 27,
+      "buffer": 56
+    }],
+    26: [function (require, module, exports) {
+      (function () {
+        (function () {
+          "use strict";
+
+          Object.defineProperty(exports, "__esModule", {
+            value: true
+          });
+          exports.PackageBuffer = exports.BIP44PurposeNodeToken = exports.MAX_BIP_44_DEPTH = exports.MIN_BIP_44_DEPTH = exports.getBIP44AddressKeyDeriver = exports.deriveBIP44AddressKey = exports.BIP_44_COIN_TYPE_DEPTH = exports.BIP44CoinTypeNode = exports.ed25519 = exports.secp256k1 = exports.SLIP10Node = exports.BIP44Node = void 0;
+
+          var BIP44Node_1 = require("./BIP44Node");
+
+          Object.defineProperty(exports, "BIP44Node", {
+            enumerable: true,
+            get: function () {
+              return BIP44Node_1.BIP44Node;
+            }
+          });
+
+          var SLIP10Node_1 = require("./SLIP10Node");
+
+          Object.defineProperty(exports, "SLIP10Node", {
+            enumerable: true,
+            get: function () {
+              return SLIP10Node_1.SLIP10Node;
+            }
+          });
+
+          var curves_1 = require("./curves");
+
+          Object.defineProperty(exports, "secp256k1", {
+            enumerable: true,
+            get: function () {
+              return curves_1.secp256k1;
+            }
+          });
+          Object.defineProperty(exports, "ed25519", {
+            enumerable: true,
+            get: function () {
+              return curves_1.ed25519;
+            }
+          });
+
+          var BIP44CoinTypeNode_1 = require("./BIP44CoinTypeNode");
+
+          Object.defineProperty(exports, "BIP44CoinTypeNode", {
+            enumerable: true,
+            get: function () {
+              return BIP44CoinTypeNode_1.BIP44CoinTypeNode;
+            }
+          });
+          Object.defineProperty(exports, "BIP_44_COIN_TYPE_DEPTH", {
+            enumerable: true,
+            get: function () {
+              return BIP44CoinTypeNode_1.BIP_44_COIN_TYPE_DEPTH;
+            }
+          });
+          Object.defineProperty(exports, "deriveBIP44AddressKey", {
+            enumerable: true,
+            get: function () {
+              return BIP44CoinTypeNode_1.deriveBIP44AddressKey;
+            }
+          });
+          Object.defineProperty(exports, "getBIP44AddressKeyDeriver", {
+            enumerable: true,
+            get: function () {
+              return BIP44CoinTypeNode_1.getBIP44AddressKeyDeriver;
+            }
+          });
+
+          var constants_1 = require("./constants");
+
+          Object.defineProperty(exports, "MIN_BIP_44_DEPTH", {
+            enumerable: true,
+            get: function () {
+              return constants_1.MIN_BIP_44_DEPTH;
+            }
+          });
+          Object.defineProperty(exports, "MAX_BIP_44_DEPTH", {
+            enumerable: true,
+            get: function () {
+              return constants_1.MAX_BIP_44_DEPTH;
+            }
+          });
+          Object.defineProperty(exports, "BIP44PurposeNodeToken", {
+            enumerable: true,
+            get: function () {
+              return constants_1.BIP44PurposeNodeToken;
+            }
+          });
+          exports.PackageBuffer = Buffer;
+        }).call(this);
+      }).call(this, require("buffer").Buffer);
+    }, {
+      "./BIP44CoinTypeNode": 13,
+      "./BIP44Node": 14,
+      "./SLIP10Node": 15,
+      "./constants": 16,
+      "./curves": 19,
+      "buffer": 56
+    }],
+    27: [function (require, module, exports) {
+      (function () {
+        (function () {
+          "use strict";
+
+          Object.defineProperty(exports, "__esModule", {
+            value: true
+          });
+          exports.getFingerprint = exports.encodeBase58check = exports.decodeBase58check = exports.getBuffer = exports.bytesToNumber = exports.isValidInteger = exports.isValidBufferKey = exports.nullableHexStringToBuffer = exports.hexStringToBuffer = exports.isValidHexString = exports.stripHexPrefix = exports.isHardened = exports.isValidBIP32Index = exports.validateBIP32Index = exports.getBIP32NodeToken = exports.getUnhardenedBIP32NodeToken = exports.getHardenedBIP32NodeToken = exports.getBIP44CoinTypeToAddressPathTuple = exports.getBIP44ChangePathString = exports.getBIP44CoinTypePathString = void 0;
+
+          const utils_1 = require("@noble/hashes/utils");
+
+          const base_1 = require("@scure/base");
+
+          const sha256_1 = require("@noble/hashes/sha256");
+
+          const ripemd160_1 = require("@noble/hashes/ripemd160");
+
+          const constants_1 = require("./constants");
+
+          function getBIP44CoinTypePathString(coin_type) {
+            return `m / ${constants_1.BIP44PurposeNodeToken} / ${getUnhardenedBIP32NodeToken(coin_type)}'`;
+          }
+
+          exports.getBIP44CoinTypePathString = getBIP44CoinTypePathString;
+
+          function getBIP44ChangePathString(coinTypePath, indices) {
+            return `${coinTypePath} / ${getHardenedBIP32NodeToken(indices.account || 0)} / ${getBIP32NodeToken(indices.change || 0)}`;
+          }
+
+          exports.getBIP44ChangePathString = getBIP44ChangePathString;
+
+          function getBIP44CoinTypeToAddressPathTuple({
+            account = 0,
+            change = 0,
+            address_index
+          }) {
+            return [getHardenedBIP32NodeToken(account), getBIP32NodeToken(change), getBIP32NodeToken(address_index)];
+          }
+
+          exports.getBIP44CoinTypeToAddressPathTuple = getBIP44CoinTypeToAddressPathTuple;
+
+          function getHardenedBIP32NodeToken(index) {
+            validateBIP32Index(index);
+            return `${getUnhardenedBIP32NodeToken(index)}'`;
+          }
+
+          exports.getHardenedBIP32NodeToken = getHardenedBIP32NodeToken;
+
+          function getUnhardenedBIP32NodeToken(index) {
+            validateBIP32Index(index);
+            return `bip32:${index}`;
+          }
+
+          exports.getUnhardenedBIP32NodeToken = getUnhardenedBIP32NodeToken;
+
+          function getBIP32NodeToken(index) {
+            if (typeof index === 'number') {
+              return getUnhardenedBIP32NodeToken(index);
+            }
+
+            if (!index || !Number.isInteger(index.index) || typeof index.hardened !== 'boolean') {
+              throw new Error('Invalid BIP-32 index: Must be an object containing the index and whether it is hardened.');
+            }
+
+            if (index.hardened) {
+              return getHardenedBIP32NodeToken(index.index);
+            }
+
+            return getUnhardenedBIP32NodeToken(index.index);
+          }
+
+          exports.getBIP32NodeToken = getBIP32NodeToken;
+
+          function validateBIP32Index(addressIndex) {
+            if (!isValidBIP32Index(addressIndex)) {
+              throw new Error(`Invalid BIP-32 index: Must be a non-negative integer.`);
+            }
+          }
+
+          exports.validateBIP32Index = validateBIP32Index;
+
+          function isValidBIP32Index(index) {
+            return isValidInteger(index);
+          }
+
+          exports.isValidBIP32Index = isValidBIP32Index;
+
+          function isHardened(bip32Token) {
+            return bip32Token.endsWith(`'`);
+          }
+
+          exports.isHardened = isHardened;
+
+          function stripHexPrefix(hexString) {
+            return hexString.replace(/^0x/iu, '');
+          }
+
+          exports.stripHexPrefix = stripHexPrefix;
+
+          function isValidHexString(hexString) {
+            return /^(?:0x)?[a-f0-9]+$/iu.test(hexString);
+          }
+
+          exports.isValidHexString = isValidHexString;
+
+          function hexStringToBuffer(hexString) {
+            if (Buffer.isBuffer(hexString)) {
+              return hexString;
+            }
+
+            if (typeof hexString !== 'string' || !isValidHexString(hexString)) {
+              throw new Error(`Invalid hex string: "${hexString}".`);
+            }
+
+            return Buffer.from(stripHexPrefix(hexString), 'hex');
+          }
+
+          exports.hexStringToBuffer = hexStringToBuffer;
+
+          function nullableHexStringToBuffer(hexString) {
+            if (hexString) {
+              return hexStringToBuffer(hexString);
+            }
+
+            return undefined;
+          }
+
+          exports.nullableHexStringToBuffer = nullableHexStringToBuffer;
+
+          function isValidBufferKey(buffer, expectedLength) {
+            if (buffer.length !== expectedLength) {
+              return false;
+            }
+
+            for (const byte of buffer) {
+              if (byte !== 0) {
+                return true;
+              }
+            }
+
+            return false;
+          }
+
+          exports.isValidBufferKey = isValidBufferKey;
+
+          function isValidInteger(value) {
+            return typeof value === 'number' && Number.isInteger(value) && value >= 0;
+          }
+
+          exports.isValidInteger = isValidInteger;
+
+          function bytesToNumber(bytes) {
+            return BigInt(`0x${utils_1.bytesToHex(bytes)}`);
+          }
+
+          exports.bytesToNumber = bytesToNumber;
+
+          function getBuffer(value, length) {
+            if (value instanceof Buffer) {
+              validateBuffer(value, length);
+              return value;
+            }
+
+            if (typeof value === 'string') {
+              if (!isValidHexString(value)) {
+                throw new Error(`Invalid value: Must be a valid hex string of length: ${length * 2}.`);
+              }
+
+              const buffer = hexStringToBuffer(value);
+              validateBuffer(buffer, length);
+              return buffer;
+            }
+
+            throw new Error(`Invalid value: Expected a Buffer or hexadecimal string.`);
+          }
+
+          exports.getBuffer = getBuffer;
+
+          function validateBuffer(buffer, length) {
+            if (!isValidBufferKey(buffer, length)) {
+              throw new Error(`Invalid value: Must be a non-zero ${length}-byte buffer.`);
+            }
+          }
+
+          const decodeBase58check = value => {
+            const base58Check = base_1.base58check(sha256_1.sha256);
+
+            try {
+              return Buffer.from(base58Check.decode(value));
+            } catch (_a) {
+              throw new Error(`Invalid value: Value is not base58-encoded, or the checksum is invalid.`);
+            }
+          };
+
+          exports.decodeBase58check = decodeBase58check;
+
+          const encodeBase58check = value => {
+            const base58Check = base_1.base58check(sha256_1.sha256);
+            return base58Check.encode(value);
+          };
+
+          exports.encodeBase58check = encodeBase58check;
+
+          const getFingerprint = publicKey => {
+            if (!isValidBufferKey(publicKey, 33)) {
+              throw new Error(`Invalid public key: The key must be a 33-byte, non-zero Buffer.`);
+            }
+
+            return Buffer.from(ripemd160_1.ripemd160(publicKey)).readUInt32BE(0);
+          };
+
+          exports.getFingerprint = getFingerprint;
+        }).call(this);
+      }).call(this, require("buffer").Buffer);
+    }, {
+      "./constants": 16,
+      "@noble/hashes/ripemd160": 35,
+      "@noble/hashes/sha256": 36,
+      "@noble/hashes/utils": 39,
+      "@scure/base": 41,
+      "buffer": 56
+    }],
+    28: [function (require, module, exports) {
+      "use strict";
+
       Object.defineProperty(exports, "__esModule", {
         value: true
       });
@@ -1705,9 +3590,9 @@ var regeneratorRuntime;
         }
       });
     }, {
-      "crypto": 36
+      "crypto": 55
     }],
-    14: [function (require, module, exports) {
+    29: [function (require, module, exports) {
       "use strict";
 
       Object.defineProperty(exports, "__esModule", {
@@ -1769,7 +3654,7 @@ var regeneratorRuntime;
       };
       exports.default = assert;
     }, {}],
-    15: [function (require, module, exports) {
+    30: [function (require, module, exports) {
       "use strict";
 
       Object.defineProperty(exports, "__esModule", {
@@ -1913,10 +3798,10 @@ var regeneratorRuntime;
 
       exports.SHA2 = SHA2;
     }, {
-      "./_assert.js": 14,
-      "./utils.js": 21
+      "./_assert.js": 29,
+      "./utils.js": 39
     }],
-    16: [function (require, module, exports) {
+    31: [function (require, module, exports) {
       "use strict";
 
       Object.defineProperty(exports, "__esModule", {
@@ -2033,7 +3918,7 @@ var regeneratorRuntime;
       };
       exports.default = u64;
     }, {}],
-    17: [function (require, module, exports) {
+    32: [function (require, module, exports) {
       "use strict";
 
       Object.defineProperty(exports, "__esModule", {
@@ -2045,7 +3930,7 @@ var regeneratorRuntime;
         web: typeof self === 'object' && 'crypto' in self ? self.crypto : undefined
       };
     }, {}],
-    18: [function (require, module, exports) {
+    33: [function (require, module, exports) {
       "use strict";
 
       Object.defineProperty(exports, "__esModule", {
@@ -2143,10 +4028,259 @@ var regeneratorRuntime;
 
       exports.hmac.create = (hash, key) => new HMAC(hash, key);
     }, {
-      "./_assert.js": 14,
-      "./utils.js": 21
+      "./_assert.js": 29,
+      "./utils.js": 39
     }],
-    19: [function (require, module, exports) {
+    34: [function (require, module, exports) {
+      "use strict";
+
+      Object.defineProperty(exports, "__esModule", {
+        value: true
+      });
+      exports.pbkdf2Async = exports.pbkdf2 = void 0;
+
+      const _assert_js_1 = require("./_assert.js");
+
+      const hmac_js_1 = require("./hmac.js");
+
+      const utils_js_1 = require("./utils.js");
+
+      function pbkdf2Init(hash, _password, _salt, _opts) {
+        _assert_js_1.default.hash(hash);
+
+        const opts = (0, utils_js_1.checkOpts)({
+          dkLen: 32,
+          asyncTick: 10
+        }, _opts);
+        const {
+          c,
+          dkLen,
+          asyncTick
+        } = opts;
+
+        _assert_js_1.default.number(c);
+
+        _assert_js_1.default.number(dkLen);
+
+        _assert_js_1.default.number(asyncTick);
+
+        if (c < 1) throw new Error('PBKDF2: iterations (c) should be >= 1');
+        const password = (0, utils_js_1.toBytes)(_password);
+        const salt = (0, utils_js_1.toBytes)(_salt);
+        const DK = new Uint8Array(dkLen);
+        const PRF = hmac_js_1.hmac.create(hash, password);
+
+        const PRFSalt = PRF._cloneInto().update(salt);
+
+        return {
+          c,
+          dkLen,
+          asyncTick,
+          DK,
+          PRF,
+          PRFSalt
+        };
+      }
+
+      function pbkdf2Output(PRF, PRFSalt, DK, prfW, u) {
+        PRF.destroy();
+        PRFSalt.destroy();
+        if (prfW) prfW.destroy();
+        u.fill(0);
+        return DK;
+      }
+
+      function pbkdf2(hash, password, salt, opts) {
+        const {
+          c,
+          dkLen,
+          DK,
+          PRF,
+          PRFSalt
+        } = pbkdf2Init(hash, password, salt, opts);
+        let prfW;
+        const arr = new Uint8Array(4);
+        const view = (0, utils_js_1.createView)(arr);
+        const u = new Uint8Array(PRF.outputLen);
+
+        for (let ti = 1, pos = 0; pos < dkLen; ti++, pos += PRF.outputLen) {
+          const Ti = DK.subarray(pos, pos + PRF.outputLen);
+          view.setInt32(0, ti, false);
+
+          (prfW = PRFSalt._cloneInto(prfW)).update(arr).digestInto(u);
+
+          Ti.set(u.subarray(0, Ti.length));
+
+          for (let ui = 1; ui < c; ui++) {
+            PRF._cloneInto(prfW).update(u).digestInto(u);
+
+            for (let i = 0; i < Ti.length; i++) Ti[i] ^= u[i];
+          }
+        }
+
+        return pbkdf2Output(PRF, PRFSalt, DK, prfW, u);
+      }
+
+      exports.pbkdf2 = pbkdf2;
+
+      async function pbkdf2Async(hash, password, salt, opts) {
+        const {
+          c,
+          dkLen,
+          asyncTick,
+          DK,
+          PRF,
+          PRFSalt
+        } = pbkdf2Init(hash, password, salt, opts);
+        let prfW;
+        const arr = new Uint8Array(4);
+        const view = (0, utils_js_1.createView)(arr);
+        const u = new Uint8Array(PRF.outputLen);
+
+        for (let ti = 1, pos = 0; pos < dkLen; ti++, pos += PRF.outputLen) {
+          const Ti = DK.subarray(pos, pos + PRF.outputLen);
+          view.setInt32(0, ti, false);
+
+          (prfW = PRFSalt._cloneInto(prfW)).update(arr).digestInto(u);
+
+          Ti.set(u.subarray(0, Ti.length));
+          await (0, utils_js_1.asyncLoop)(c - 1, asyncTick, i => {
+            PRF._cloneInto(prfW).update(u).digestInto(u);
+
+            for (let i = 0; i < Ti.length; i++) Ti[i] ^= u[i];
+          });
+        }
+
+        return pbkdf2Output(PRF, PRFSalt, DK, prfW, u);
+      }
+
+      exports.pbkdf2Async = pbkdf2Async;
+    }, {
+      "./_assert.js": 29,
+      "./hmac.js": 33,
+      "./utils.js": 39
+    }],
+    35: [function (require, module, exports) {
+      "use strict";
+
+      Object.defineProperty(exports, "__esModule", {
+        value: true
+      });
+      exports.ripemd160 = exports.RIPEMD160 = void 0;
+
+      const _sha2_js_1 = require("./_sha2.js");
+
+      const utils_js_1 = require("./utils.js");
+
+      const Rho = new Uint8Array([7, 4, 13, 1, 10, 6, 15, 3, 12, 0, 9, 5, 2, 14, 11, 8]);
+      const Id = Uint8Array.from({
+        length: 16
+      }, (_, i) => i);
+      const Pi = Id.map(i => (9 * i + 5) % 16);
+      let idxL = [Id];
+      let idxR = [Pi];
+
+      for (let i = 0; i < 4; i++) for (let j of [idxL, idxR]) j.push(j[i].map(k => Rho[k]));
+
+      const shifts = [[11, 14, 15, 12, 5, 8, 7, 9, 11, 13, 14, 15, 6, 7, 9, 8], [12, 13, 11, 15, 6, 9, 9, 7, 12, 15, 11, 13, 7, 8, 7, 7], [13, 15, 14, 11, 7, 7, 6, 8, 13, 14, 13, 12, 5, 5, 6, 9], [14, 11, 12, 14, 8, 6, 5, 5, 15, 12, 15, 14, 9, 9, 8, 6], [15, 12, 13, 13, 9, 5, 8, 6, 14, 11, 12, 11, 8, 6, 5, 5]].map(i => new Uint8Array(i));
+      const shiftsL = idxL.map((idx, i) => idx.map(j => shifts[i][j]));
+      const shiftsR = idxR.map((idx, i) => idx.map(j => shifts[i][j]));
+      const Kl = new Uint32Array([0x00000000, 0x5a827999, 0x6ed9eba1, 0x8f1bbcdc, 0xa953fd4e]);
+      const Kr = new Uint32Array([0x50a28be6, 0x5c4dd124, 0x6d703ef3, 0x7a6d76e9, 0x00000000]);
+
+      const rotl = (word, shift) => word << shift | word >>> 32 - shift;
+
+      function f(group, x, y, z) {
+        if (group === 0) return x ^ y ^ z;else if (group === 1) return x & y | ~x & z;else if (group === 2) return (x | ~y) ^ z;else if (group === 3) return x & z | y & ~z;else return x ^ (y | ~z);
+      }
+
+      const BUF = new Uint32Array(16);
+
+      class RIPEMD160 extends _sha2_js_1.SHA2 {
+        constructor() {
+          super(64, 20, 8, true);
+          this.h0 = 0x67452301 | 0;
+          this.h1 = 0xefcdab89 | 0;
+          this.h2 = 0x98badcfe | 0;
+          this.h3 = 0x10325476 | 0;
+          this.h4 = 0xc3d2e1f0 | 0;
+        }
+
+        get() {
+          const {
+            h0,
+            h1,
+            h2,
+            h3,
+            h4
+          } = this;
+          return [h0, h1, h2, h3, h4];
+        }
+
+        set(h0, h1, h2, h3, h4) {
+          this.h0 = h0 | 0;
+          this.h1 = h1 | 0;
+          this.h2 = h2 | 0;
+          this.h3 = h3 | 0;
+          this.h4 = h4 | 0;
+        }
+
+        process(view, offset) {
+          for (let i = 0; i < 16; i++, offset += 4) BUF[i] = view.getUint32(offset, true);
+
+          let al = this.h0 | 0,
+              ar = al,
+              bl = this.h1 | 0,
+              br = bl,
+              cl = this.h2 | 0,
+              cr = cl,
+              dl = this.h3 | 0,
+              dr = dl,
+              el = this.h4 | 0,
+              er = el;
+
+          for (let group = 0; group < 5; group++) {
+            const rGroup = 4 - group;
+            const hbl = Kl[group],
+                  hbr = Kr[group];
+            const rl = idxL[group],
+                  rr = idxR[group];
+            const sl = shiftsL[group],
+                  sr = shiftsR[group];
+
+            for (let i = 0; i < 16; i++) {
+              const tl = rotl(al + f(group, bl, cl, dl) + BUF[rl[i]] + hbl, sl[i]) + el | 0;
+              al = el, el = dl, dl = rotl(cl, 10) | 0, cl = bl, bl = tl;
+            }
+
+            for (let i = 0; i < 16; i++) {
+              const tr = rotl(ar + f(rGroup, br, cr, dr) + BUF[rr[i]] + hbr, sr[i]) + er | 0;
+              ar = er, er = dr, dr = rotl(cr, 10) | 0, cr = br, br = tr;
+            }
+          }
+
+          this.set(this.h1 + cl + dr | 0, this.h2 + dl + er | 0, this.h3 + el + ar | 0, this.h4 + al + br | 0, this.h0 + bl + cr | 0);
+        }
+
+        roundClean() {
+          BUF.fill(0);
+        }
+
+        destroy() {
+          this.destroyed = true;
+          this.buffer.fill(0);
+          this.set(0, 0, 0, 0, 0);
+        }
+
+      }
+
+      exports.RIPEMD160 = RIPEMD160;
+      exports.ripemd160 = (0, utils_js_1.wrapConstructor)(() => new RIPEMD160());
+    }, {
+      "./_sha2.js": 30,
+      "./utils.js": 39
+    }],
+    36: [function (require, module, exports) {
       "use strict";
 
       Object.defineProperty(exports, "__esModule", {
@@ -2265,10 +4399,265 @@ var regeneratorRuntime;
 
       exports.sha256 = (0, utils_js_1.wrapConstructor)(() => new SHA256());
     }, {
-      "./_sha2.js": 15,
-      "./utils.js": 21
+      "./_sha2.js": 30,
+      "./utils.js": 39
     }],
-    20: [function (require, module, exports) {
+    37: [function (require, module, exports) {
+      "use strict";
+
+      Object.defineProperty(exports, "__esModule", {
+        value: true
+      });
+      exports.shake256 = exports.shake128 = exports.keccak_512 = exports.keccak_384 = exports.keccak_256 = exports.keccak_224 = exports.sha3_512 = exports.sha3_384 = exports.sha3_256 = exports.sha3_224 = exports.Keccak = exports.keccakP = void 0;
+
+      const _assert_js_1 = require("./_assert.js");
+
+      const _u64_js_1 = require("./_u64.js");
+
+      const utils_js_1 = require("./utils.js");
+
+      const [SHA3_PI, SHA3_ROTL, _SHA3_IOTA] = [[], [], []];
+
+      const _0n = BigInt(0);
+
+      const _1n = BigInt(1);
+
+      const _2n = BigInt(2);
+
+      const _7n = BigInt(7);
+
+      const _256n = BigInt(256);
+
+      const _0x71n = BigInt(0x71);
+
+      for (let round = 0, R = _1n, x = 1, y = 0; round < 24; round++) {
+        [x, y] = [y, (2 * x + 3 * y) % 5];
+        SHA3_PI.push(2 * (5 * y + x));
+        SHA3_ROTL.push((round + 1) * (round + 2) / 2 % 64);
+        let t = _0n;
+
+        for (let j = 0; j < 7; j++) {
+          R = (R << _1n ^ (R >> _7n) * _0x71n) % _256n;
+          if (R & _2n) t ^= _1n << (_1n << BigInt(j)) - _1n;
+        }
+
+        _SHA3_IOTA.push(t);
+      }
+
+      const [SHA3_IOTA_H, SHA3_IOTA_L] = _u64_js_1.default.split(_SHA3_IOTA, true);
+
+      const rotlH = (h, l, s) => s > 32 ? _u64_js_1.default.rotlBH(h, l, s) : _u64_js_1.default.rotlSH(h, l, s);
+
+      const rotlL = (h, l, s) => s > 32 ? _u64_js_1.default.rotlBL(h, l, s) : _u64_js_1.default.rotlSL(h, l, s);
+
+      function keccakP(s, rounds = 24) {
+        const B = new Uint32Array(5 * 2);
+
+        for (let round = 24 - rounds; round < 24; round++) {
+          for (let x = 0; x < 10; x++) B[x] = s[x] ^ s[x + 10] ^ s[x + 20] ^ s[x + 30] ^ s[x + 40];
+
+          for (let x = 0; x < 10; x += 2) {
+            const idx1 = (x + 8) % 10;
+            const idx0 = (x + 2) % 10;
+            const B0 = B[idx0];
+            const B1 = B[idx0 + 1];
+            const Th = rotlH(B0, B1, 1) ^ B[idx1];
+            const Tl = rotlL(B0, B1, 1) ^ B[idx1 + 1];
+
+            for (let y = 0; y < 50; y += 10) {
+              s[x + y] ^= Th;
+              s[x + y + 1] ^= Tl;
+            }
+          }
+
+          let curH = s[2];
+          let curL = s[3];
+
+          for (let t = 0; t < 24; t++) {
+            const shift = SHA3_ROTL[t];
+            const Th = rotlH(curH, curL, shift);
+            const Tl = rotlL(curH, curL, shift);
+            const PI = SHA3_PI[t];
+            curH = s[PI];
+            curL = s[PI + 1];
+            s[PI] = Th;
+            s[PI + 1] = Tl;
+          }
+
+          for (let y = 0; y < 50; y += 10) {
+            for (let x = 0; x < 10; x++) B[x] = s[y + x];
+
+            for (let x = 0; x < 10; x++) s[y + x] ^= ~B[(x + 2) % 10] & B[(x + 4) % 10];
+          }
+
+          s[0] ^= SHA3_IOTA_H[round];
+          s[1] ^= SHA3_IOTA_L[round];
+        }
+
+        B.fill(0);
+      }
+
+      exports.keccakP = keccakP;
+
+      class Keccak extends utils_js_1.Hash {
+        constructor(blockLen, suffix, outputLen, enableXOF = false, rounds = 24) {
+          super();
+          this.blockLen = blockLen;
+          this.suffix = suffix;
+          this.outputLen = outputLen;
+          this.enableXOF = enableXOF;
+          this.rounds = rounds;
+          this.pos = 0;
+          this.posOut = 0;
+          this.finished = false;
+          this.destroyed = false;
+
+          _assert_js_1.default.number(outputLen);
+
+          if (0 >= this.blockLen || this.blockLen >= 200) throw new Error('Sha3 supports only keccak-f1600 function');
+          this.state = new Uint8Array(200);
+          this.state32 = (0, utils_js_1.u32)(this.state);
+        }
+
+        keccak() {
+          keccakP(this.state32, this.rounds);
+          this.posOut = 0;
+          this.pos = 0;
+        }
+
+        update(data) {
+          _assert_js_1.default.exists(this);
+
+          const {
+            blockLen,
+            state
+          } = this;
+          data = (0, utils_js_1.toBytes)(data);
+          const len = data.length;
+
+          for (let pos = 0; pos < len;) {
+            const take = Math.min(blockLen - this.pos, len - pos);
+
+            for (let i = 0; i < take; i++) state[this.pos++] ^= data[pos++];
+
+            if (this.pos === blockLen) this.keccak();
+          }
+
+          return this;
+        }
+
+        finish() {
+          if (this.finished) return;
+          this.finished = true;
+          const {
+            state,
+            suffix,
+            pos,
+            blockLen
+          } = this;
+          state[pos] ^= suffix;
+          if ((suffix & 0x80) !== 0 && pos === blockLen - 1) this.keccak();
+          state[blockLen - 1] ^= 0x80;
+          this.keccak();
+        }
+
+        writeInto(out) {
+          _assert_js_1.default.exists(this, false);
+
+          _assert_js_1.default.bytes(out);
+
+          this.finish();
+          const bufferOut = this.state;
+          const {
+            blockLen
+          } = this;
+
+          for (let pos = 0, len = out.length; pos < len;) {
+            if (this.posOut >= blockLen) this.keccak();
+            const take = Math.min(blockLen - this.posOut, len - pos);
+            out.set(bufferOut.subarray(this.posOut, this.posOut + take), pos);
+            this.posOut += take;
+            pos += take;
+          }
+
+          return out;
+        }
+
+        xofInto(out) {
+          if (!this.enableXOF) throw new Error('XOF is not possible for this instance');
+          return this.writeInto(out);
+        }
+
+        xof(bytes) {
+          _assert_js_1.default.number(bytes);
+
+          return this.xofInto(new Uint8Array(bytes));
+        }
+
+        digestInto(out) {
+          _assert_js_1.default.output(out, this);
+
+          if (this.finished) throw new Error('digest() was already called');
+          this.writeInto(out);
+          this.destroy();
+          return out;
+        }
+
+        digest() {
+          return this.digestInto(new Uint8Array(this.outputLen));
+        }
+
+        destroy() {
+          this.destroyed = true;
+          this.state.fill(0);
+        }
+
+        _cloneInto(to) {
+          const {
+            blockLen,
+            suffix,
+            outputLen,
+            rounds,
+            enableXOF
+          } = this;
+          to || (to = new Keccak(blockLen, suffix, outputLen, enableXOF, rounds));
+          to.state32.set(this.state32);
+          to.pos = this.pos;
+          to.posOut = this.posOut;
+          to.finished = this.finished;
+          to.rounds = rounds;
+          to.suffix = suffix;
+          to.outputLen = outputLen;
+          to.enableXOF = enableXOF;
+          to.destroyed = this.destroyed;
+          return to;
+        }
+
+      }
+
+      exports.Keccak = Keccak;
+
+      const gen = (suffix, blockLen, outputLen) => (0, utils_js_1.wrapConstructor)(() => new Keccak(blockLen, suffix, outputLen));
+
+      exports.sha3_224 = gen(0x06, 144, 224 / 8);
+      exports.sha3_256 = gen(0x06, 136, 256 / 8);
+      exports.sha3_384 = gen(0x06, 104, 384 / 8);
+      exports.sha3_512 = gen(0x06, 72, 512 / 8);
+      exports.keccak_224 = gen(0x01, 144, 224 / 8);
+      exports.keccak_256 = gen(0x01, 136, 256 / 8);
+      exports.keccak_384 = gen(0x01, 104, 384 / 8);
+      exports.keccak_512 = gen(0x01, 72, 512 / 8);
+
+      const genShake = (suffix, blockLen, outputLen) => (0, utils_js_1.wrapConstructorWithOpts)((opts = {}) => new Keccak(blockLen, suffix, opts.dkLen === undefined ? outputLen : opts.dkLen, true));
+
+      exports.shake128 = genShake(0x1f, 168, 128 / 8);
+      exports.shake256 = genShake(0x1f, 136, 256 / 8);
+    }, {
+      "./_assert.js": 29,
+      "./_u64.js": 31,
+      "./utils.js": 39
+    }],
+    38: [function (require, module, exports) {
       "use strict";
 
       Object.defineProperty(exports, "__esModule", {
@@ -2541,11 +4930,11 @@ var regeneratorRuntime;
       exports.sha512_256 = (0, utils_js_1.wrapConstructor)(() => new SHA512_256());
       exports.sha384 = (0, utils_js_1.wrapConstructor)(() => new SHA384());
     }, {
-      "./_sha2.js": 15,
-      "./_u64.js": 16,
-      "./utils.js": 21
+      "./_sha2.js": 30,
+      "./_u64.js": 31,
+      "./utils.js": 39
     }],
-    21: [function (require, module, exports) {
+    39: [function (require, module, exports) {
       "use strict";
 
       Object.defineProperty(exports, "__esModule", {
@@ -2722,9 +5111,9 @@ var regeneratorRuntime;
 
       exports.randomBytes = randomBytes;
     }, {
-      "@noble/hashes/crypto": 17
+      "@noble/hashes/crypto": 32
     }],
-    22: [function (require, module, exports) {
+    40: [function (require, module, exports) {
       "use strict";
 
       Object.defineProperty(exports, "__esModule", {
@@ -4195,9 +6584,575 @@ var regeneratorRuntime;
 
       };
     }, {
-      "crypto": 36
+      "crypto": 55
     }],
-    23: [function (require, module, exports) {
+    41: [function (require, module, exports) {
+      "use strict";
+
+      Object.defineProperty(exports, "__esModule", {
+        value: true
+      });
+      exports.bytes = exports.stringToBytes = exports.str = exports.bytesToString = exports.hex = exports.utf8 = exports.bech32m = exports.bech32 = exports.base58check = exports.base58xmr = exports.base58xrp = exports.base58flickr = exports.base58 = exports.base64url = exports.base64 = exports.base32crockford = exports.base32hex = exports.base32 = exports.base16 = exports.utils = exports.assertNumber = void 0;
+
+      function assertNumber(n) {
+        if (!Number.isSafeInteger(n)) throw new Error(`Wrong integer: ${n}`);
+      }
+
+      exports.assertNumber = assertNumber;
+
+      function chain(...args) {
+        const wrap = (a, b) => c => a(b(c));
+
+        const encode = Array.from(args).reverse().reduce((acc, i) => acc ? wrap(acc, i.encode) : i.encode, undefined);
+        const decode = args.reduce((acc, i) => acc ? wrap(acc, i.decode) : i.decode, undefined);
+        return {
+          encode,
+          decode
+        };
+      }
+
+      function alphabet(alphabet) {
+        return {
+          encode: digits => {
+            if (!Array.isArray(digits) || digits.length && typeof digits[0] !== 'number') throw new Error('alphabet.encode input should be an array of numbers');
+            return digits.map(i => {
+              assertNumber(i);
+              if (i < 0 || i >= alphabet.length) throw new Error(`Digit index outside alphabet: ${i} (alphabet: ${alphabet.length})`);
+              return alphabet[i];
+            });
+          },
+          decode: input => {
+            if (!Array.isArray(input) || input.length && typeof input[0] !== 'string') throw new Error('alphabet.decode input should be array of strings');
+            return input.map(letter => {
+              if (typeof letter !== 'string') throw new Error(`alphabet.decode: not string element=${letter}`);
+              const index = alphabet.indexOf(letter);
+              if (index === -1) throw new Error(`Unknown letter: "${letter}". Allowed: ${alphabet}`);
+              return index;
+            });
+          }
+        };
+      }
+
+      function join(separator = '') {
+        if (typeof separator !== 'string') throw new Error('join separator should be string');
+        return {
+          encode: from => {
+            if (!Array.isArray(from) || from.length && typeof from[0] !== 'string') throw new Error('join.encode input should be array of strings');
+
+            for (let i of from) if (typeof i !== 'string') throw new Error(`join.encode: non-string input=${i}`);
+
+            return from.join(separator);
+          },
+          decode: to => {
+            if (typeof to !== 'string') throw new Error('join.decode input should be string');
+            return to.split(separator);
+          }
+        };
+      }
+
+      function padding(bits, chr = '=') {
+        assertNumber(bits);
+        if (typeof chr !== 'string') throw new Error('padding chr should be string');
+        return {
+          encode(data) {
+            if (!Array.isArray(data) || data.length && typeof data[0] !== 'string') throw new Error('padding.encode input should be array of strings');
+
+            for (let i of data) if (typeof i !== 'string') throw new Error(`padding.encode: non-string input=${i}`);
+
+            while (data.length * bits % 8) data.push(chr);
+
+            return data;
+          },
+
+          decode(input) {
+            if (!Array.isArray(input) || input.length && typeof input[0] !== 'string') throw new Error('padding.encode input should be array of strings');
+
+            for (let i of input) if (typeof i !== 'string') throw new Error(`padding.decode: non-string input=${i}`);
+
+            let end = input.length;
+            if (end * bits % 8) throw new Error('Invalid padding: string should have whole number of bytes');
+
+            for (; end > 0 && input[end - 1] === chr; end--) {
+              if (!((end - 1) * bits % 8)) throw new Error('Invalid padding: string has too much padding');
+            }
+
+            return input.slice(0, end);
+          }
+
+        };
+      }
+
+      function normalize(fn) {
+        if (typeof fn !== 'function') throw new Error('normalize fn should be function');
+        return {
+          encode: from => from,
+          decode: to => fn(to)
+        };
+      }
+
+      function convertRadix(data, from, to) {
+        if (from < 2) throw new Error(`convertRadix: wrong from=${from}, base cannot be less than 2`);
+        if (to < 2) throw new Error(`convertRadix: wrong to=${to}, base cannot be less than 2`);
+        if (!Array.isArray(data)) throw new Error('convertRadix: data should be array');
+        if (!data.length) return [];
+        let pos = 0;
+        const res = [];
+        const digits = Array.from(data);
+        digits.forEach(d => {
+          assertNumber(d);
+          if (d < 0 || d >= from) throw new Error(`Wrong integer: ${d}`);
+        });
+
+        while (true) {
+          let carry = 0;
+          let done = true;
+
+          for (let i = pos; i < digits.length; i++) {
+            const digit = digits[i];
+            const digitBase = from * carry + digit;
+
+            if (!Number.isSafeInteger(digitBase) || from * carry / from !== carry || digitBase - digit !== from * carry) {
+              throw new Error('convertRadix: carry overflow');
+            }
+
+            carry = digitBase % to;
+            digits[i] = Math.floor(digitBase / to);
+            if (!Number.isSafeInteger(digits[i]) || digits[i] * to + carry !== digitBase) throw new Error('convertRadix: carry overflow');
+            if (!done) continue;else if (!digits[i]) pos = i;else done = false;
+          }
+
+          res.push(carry);
+          if (done) break;
+        }
+
+        for (let i = 0; i < data.length - 1 && data[i] === 0; i++) res.push(0);
+
+        return res.reverse();
+      }
+
+      const gcd = (a, b) => !b ? a : gcd(b, a % b);
+
+      const radix2carry = (from, to) => from + (to - gcd(from, to));
+
+      function convertRadix2(data, from, to, padding) {
+        if (!Array.isArray(data)) throw new Error('convertRadix2: data should be array');
+        if (from <= 0 || from > 32) throw new Error(`convertRadix2: wrong from=${from}`);
+        if (to <= 0 || to > 32) throw new Error(`convertRadix2: wrong to=${to}`);
+
+        if (radix2carry(from, to) > 32) {
+          throw new Error(`convertRadix2: carry overflow from=${from} to=${to} carryBits=${radix2carry(from, to)}`);
+        }
+
+        let carry = 0;
+        let pos = 0;
+        const mask = 2 ** to - 1;
+        const res = [];
+
+        for (const n of data) {
+          assertNumber(n);
+          if (n >= 2 ** from) throw new Error(`convertRadix2: invalid data word=${n} from=${from}`);
+          carry = carry << from | n;
+          if (pos + from > 32) throw new Error(`convertRadix2: carry overflow pos=${pos} from=${from}`);
+          pos += from;
+
+          for (; pos >= to; pos -= to) res.push((carry >> pos - to & mask) >>> 0);
+
+          carry &= 2 ** pos - 1;
+        }
+
+        carry = carry << to - pos & mask;
+        if (!padding && pos >= from) throw new Error('Excess padding');
+        if (!padding && carry) throw new Error(`Non-zero padding: ${carry}`);
+        if (padding && pos > 0) res.push(carry >>> 0);
+        return res;
+      }
+
+      function radix(num) {
+        assertNumber(num);
+        return {
+          encode: bytes => {
+            if (!(bytes instanceof Uint8Array)) throw new Error('radix.encode input should be Uint8Array');
+            return convertRadix(Array.from(bytes), 2 ** 8, num);
+          },
+          decode: digits => {
+            if (!Array.isArray(digits) || digits.length && typeof digits[0] !== 'number') throw new Error('radix.decode input should be array of strings');
+            return Uint8Array.from(convertRadix(digits, num, 2 ** 8));
+          }
+        };
+      }
+
+      function radix2(bits, revPadding = false) {
+        assertNumber(bits);
+        if (bits <= 0 || bits > 32) throw new Error('radix2: bits should be in (0..32]');
+        if (radix2carry(8, bits) > 32 || radix2carry(bits, 8) > 32) throw new Error('radix2: carry overflow');
+        return {
+          encode: bytes => {
+            if (!(bytes instanceof Uint8Array)) throw new Error('radix2.encode input should be Uint8Array');
+            return convertRadix2(Array.from(bytes), 8, bits, !revPadding);
+          },
+          decode: digits => {
+            if (!Array.isArray(digits) || digits.length && typeof digits[0] !== 'number') throw new Error('radix2.decode input should be array of strings');
+            return Uint8Array.from(convertRadix2(digits, bits, 8, revPadding));
+          }
+        };
+      }
+
+      function unsafeWrapper(fn) {
+        if (typeof fn !== 'function') throw new Error('unsafeWrapper fn should be function');
+        return function (...args) {
+          try {
+            return fn.apply(null, args);
+          } catch (e) {}
+        };
+      }
+
+      function checksum(len, fn) {
+        assertNumber(len);
+        if (typeof fn !== 'function') throw new Error('checksum fn should be function');
+        return {
+          encode(data) {
+            if (!(data instanceof Uint8Array)) throw new Error('checksum.encode: input should be Uint8Array');
+            const checksum = fn(data).slice(0, len);
+            const res = new Uint8Array(data.length + len);
+            res.set(data);
+            res.set(checksum, data.length);
+            return res;
+          },
+
+          decode(data) {
+            if (!(data instanceof Uint8Array)) throw new Error('checksum.decode: input should be Uint8Array');
+            const payload = data.slice(0, -len);
+            const newChecksum = fn(payload).slice(0, len);
+            const oldChecksum = data.slice(-len);
+
+            for (let i = 0; i < len; i++) if (newChecksum[i] !== oldChecksum[i]) throw new Error('Invalid checksum');
+
+            return payload;
+          }
+
+        };
+      }
+
+      exports.utils = {
+        alphabet,
+        chain,
+        checksum,
+        radix,
+        radix2,
+        join,
+        padding
+      };
+      exports.base16 = chain(radix2(4), alphabet('0123456789ABCDEF'), join(''));
+      exports.base32 = chain(radix2(5), alphabet('ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'), padding(5), join(''));
+      exports.base32hex = chain(radix2(5), alphabet('0123456789ABCDEFGHIJKLMNOPQRSTUV'), padding(5), join(''));
+      exports.base32crockford = chain(radix2(5), alphabet('0123456789ABCDEFGHJKMNPQRSTVWXYZ'), join(''), normalize(s => s.toUpperCase().replace(/O/g, '0').replace(/[IL]/g, '1')));
+      exports.base64 = chain(radix2(6), alphabet('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'), padding(6), join(''));
+      exports.base64url = chain(radix2(6), alphabet('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'), padding(6), join(''));
+
+      const genBase58 = abc => chain(radix(58), alphabet(abc), join(''));
+
+      exports.base58 = genBase58('123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz');
+      exports.base58flickr = genBase58('123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ');
+      exports.base58xrp = genBase58('rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz');
+      const XMR_BLOCK_LEN = [0, 2, 3, 5, 6, 7, 9, 10, 11];
+      exports.base58xmr = {
+        encode(data) {
+          let res = '';
+
+          for (let i = 0; i < data.length; i += 8) {
+            const block = data.subarray(i, i + 8);
+            res += exports.base58.encode(block).padStart(XMR_BLOCK_LEN[block.length], '1');
+          }
+
+          return res;
+        },
+
+        decode(str) {
+          let res = [];
+
+          for (let i = 0; i < str.length; i += 11) {
+            const slice = str.slice(i, i + 11);
+            const blockLen = XMR_BLOCK_LEN.indexOf(slice.length);
+            const block = exports.base58.decode(slice);
+
+            for (let j = 0; j < block.length - blockLen; j++) {
+              if (block[j] !== 0) throw new Error('base58xmr: wrong padding');
+            }
+
+            res = res.concat(Array.from(block.slice(block.length - blockLen)));
+          }
+
+          return Uint8Array.from(res);
+        }
+
+      };
+
+      const base58check = sha256 => chain(checksum(4, data => sha256(sha256(data))), exports.base58);
+
+      exports.base58check = base58check;
+      const BECH_ALPHABET = chain(alphabet('qpzry9x8gf2tvdw0s3jn54khce6mua7l'), join(''));
+      const POLYMOD_GENERATORS = [0x3b6a57b2, 0x26508e6d, 0x1ea119fa, 0x3d4233dd, 0x2a1462b3];
+
+      function bech32Polymod(pre) {
+        const b = pre >> 25;
+        let chk = (pre & 0x1ffffff) << 5;
+
+        for (let i = 0; i < POLYMOD_GENERATORS.length; i++) {
+          if ((b >> i & 1) === 1) chk ^= POLYMOD_GENERATORS[i];
+        }
+
+        return chk;
+      }
+
+      function bechChecksum(prefix, words, encodingConst = 1) {
+        const len = prefix.length;
+        let chk = 1;
+
+        for (let i = 0; i < len; i++) {
+          const c = prefix.charCodeAt(i);
+          if (c < 33 || c > 126) throw new Error(`Invalid prefix (${prefix})`);
+          chk = bech32Polymod(chk) ^ c >> 5;
+        }
+
+        chk = bech32Polymod(chk);
+
+        for (let i = 0; i < len; i++) chk = bech32Polymod(chk) ^ prefix.charCodeAt(i) & 0x1f;
+
+        for (let v of words) chk = bech32Polymod(chk) ^ v;
+
+        for (let i = 0; i < 6; i++) chk = bech32Polymod(chk);
+
+        chk ^= encodingConst;
+        return BECH_ALPHABET.encode(convertRadix2([chk % 2 ** 30], 30, 5, false));
+      }
+
+      function genBech32(encoding) {
+        const ENCODING_CONST = encoding === 'bech32' ? 1 : 0x2bc830a3;
+
+        const _words = radix2(5);
+
+        const fromWords = _words.decode;
+        const toWords = _words.encode;
+        const fromWordsUnsafe = unsafeWrapper(fromWords);
+
+        function encode(prefix, words, limit = 90) {
+          if (typeof prefix !== 'string') throw new Error(`bech32.encode prefix should be string, not ${typeof prefix}`);
+          if (!Array.isArray(words) || words.length && typeof words[0] !== 'number') throw new Error(`bech32.encode words should be array of numbers, not ${typeof words}`);
+          const actualLength = prefix.length + 7 + words.length;
+          if (limit !== false && actualLength > limit) throw new TypeError(`Length ${actualLength} exceeds limit ${limit}`);
+          prefix = prefix.toLowerCase();
+          return `${prefix}1${BECH_ALPHABET.encode(words)}${bechChecksum(prefix, words, ENCODING_CONST)}`;
+        }
+
+        function decode(str, limit = 90) {
+          if (typeof str !== 'string') throw new Error(`bech32.decode input should be string, not ${typeof str}`);
+          if (str.length < 8 || limit !== false && str.length > limit) throw new TypeError(`Wrong string length: ${str.length} (${str}). Expected (8..${limit})`);
+          const lowered = str.toLowerCase();
+          if (str !== lowered && str !== str.toUpperCase()) throw new Error(`String must be lowercase or uppercase`);
+          str = lowered;
+          const sepIndex = str.lastIndexOf('1');
+          if (sepIndex === 0 || sepIndex === -1) throw new Error(`Letter "1" must be present between prefix and data only`);
+          const prefix = str.slice(0, sepIndex);
+
+          const _words = str.slice(sepIndex + 1);
+
+          if (_words.length < 6) throw new Error('Data must be at least 6 characters long');
+          const words = BECH_ALPHABET.decode(_words).slice(0, -6);
+          const sum = bechChecksum(prefix, words, ENCODING_CONST);
+          if (!_words.endsWith(sum)) throw new Error(`Invalid checksum in ${str}: expected "${sum}"`);
+          return {
+            prefix,
+            words
+          };
+        }
+
+        const decodeUnsafe = unsafeWrapper(decode);
+
+        function decodeToBytes(str) {
+          const {
+            prefix,
+            words
+          } = decode(str, false);
+          return {
+            prefix,
+            words,
+            bytes: fromWords(words)
+          };
+        }
+
+        return {
+          encode,
+          decode,
+          decodeToBytes,
+          decodeUnsafe,
+          fromWords,
+          fromWordsUnsafe,
+          toWords
+        };
+      }
+
+      exports.bech32 = genBech32('bech32');
+      exports.bech32m = genBech32('bech32m');
+      exports.utf8 = {
+        encode: data => new TextDecoder().decode(data),
+        decode: str => new TextEncoder().encode(str)
+      };
+      exports.hex = chain(radix2(4), alphabet('0123456789abcdef'), join(''), normalize(s => {
+        if (typeof s !== 'string' || s.length % 2) throw new TypeError(`hex.decode: expected string, got ${typeof s} with length ${s.length}`);
+        return s.toLowerCase();
+      }));
+      const CODERS = {
+        utf8: exports.utf8,
+        hex: exports.hex,
+        base16: exports.base16,
+        base32: exports.base32,
+        base64: exports.base64,
+        base64url: exports.base64url,
+        base58: exports.base58,
+        base58xmr: exports.base58xmr
+      };
+      const coderTypeError = `Invalid encoding type. Available types: ${Object.keys(CODERS).join(', ')}`;
+
+      const bytesToString = (type, bytes) => {
+        if (typeof type !== 'string' || !CODERS.hasOwnProperty(type)) throw new TypeError(coderTypeError);
+        if (!(bytes instanceof Uint8Array)) throw new TypeError('bytesToString() expects Uint8Array');
+        return CODERS[type].encode(bytes);
+      };
+
+      exports.bytesToString = bytesToString;
+      exports.str = exports.bytesToString;
+
+      const stringToBytes = (type, str) => {
+        if (!CODERS.hasOwnProperty(type)) throw new TypeError(coderTypeError);
+        if (typeof str !== 'string') throw new TypeError('stringToBytes() expects string');
+        return CODERS[type].decode(str);
+      };
+
+      exports.stringToBytes = stringToBytes;
+      exports.bytes = exports.stringToBytes;
+    }, {}],
+    42: [function (require, module, exports) {
+      "use strict";
+
+      Object.defineProperty(exports, "__esModule", {
+        value: true
+      });
+      exports.mnemonicToSeedSync = exports.mnemonicToSeed = exports.validateMnemonic = exports.entropyToMnemonic = exports.mnemonicToEntropy = exports.generateMnemonic = void 0;
+
+      const _assert_1 = require("@noble/hashes/_assert");
+
+      const pbkdf2_1 = require("@noble/hashes/pbkdf2");
+
+      const sha256_1 = require("@noble/hashes/sha256");
+
+      const sha512_1 = require("@noble/hashes/sha512");
+
+      const utils_1 = require("@noble/hashes/utils");
+
+      const base_1 = require("@scure/base");
+
+      const isJapanese = wordlist => wordlist[0] === '\u3042\u3044\u3053\u304f\u3057\u3093';
+
+      function nfkd(str) {
+        if (typeof str !== 'string') throw new TypeError(`Invalid mnemonic type: ${typeof str}`);
+        return str.normalize('NFKD');
+      }
+
+      function normalize(str) {
+        const norm = nfkd(str);
+        const words = norm.split(' ');
+        if (![12, 15, 18, 21, 24].includes(words.length)) throw new Error('Invalid mnemonic');
+        return {
+          nfkd: norm,
+          words
+        };
+      }
+
+      function assertEntropy(entropy) {
+        _assert_1.default.bytes(entropy, 16, 20, 24, 28, 32);
+      }
+
+      function generateMnemonic(wordlist, strength = 128) {
+        _assert_1.default.number(strength);
+
+        if (strength % 32 !== 0 || strength > 256) throw new TypeError('Invalid entropy');
+        return entropyToMnemonic((0, utils_1.randomBytes)(strength / 8), wordlist);
+      }
+
+      exports.generateMnemonic = generateMnemonic;
+
+      const calcChecksum = entropy => {
+        const bitsLeft = 8 - entropy.length / 4;
+        return new Uint8Array([(0, sha256_1.sha256)(entropy)[0] >> bitsLeft << bitsLeft]);
+      };
+
+      function getCoder(wordlist) {
+        if (!Array.isArray(wordlist) || wordlist.length !== 2 ** 11 || typeof wordlist[0] !== 'string') throw new Error('Worlist: expected array of 2048 strings');
+        wordlist.forEach(i => {
+          if (typeof i !== 'string') throw new Error(`Wordlist: non-string element: ${i}`);
+        });
+        return base_1.utils.chain(base_1.utils.checksum(1, calcChecksum), base_1.utils.radix2(11, true), base_1.utils.alphabet(wordlist));
+      }
+
+      function mnemonicToEntropy(mnemonic, wordlist) {
+        const {
+          words
+        } = normalize(mnemonic);
+        const entropy = getCoder(wordlist).decode(words);
+        assertEntropy(entropy);
+        return entropy;
+      }
+
+      exports.mnemonicToEntropy = mnemonicToEntropy;
+
+      function entropyToMnemonic(entropy, wordlist) {
+        assertEntropy(entropy);
+        const words = getCoder(wordlist).encode(entropy);
+        return words.join(isJapanese(wordlist) ? '\u3000' : ' ');
+      }
+
+      exports.entropyToMnemonic = entropyToMnemonic;
+
+      function validateMnemonic(mnemonic, wordlist) {
+        try {
+          mnemonicToEntropy(mnemonic, wordlist);
+        } catch (e) {
+          return false;
+        }
+
+        return true;
+      }
+
+      exports.validateMnemonic = validateMnemonic;
+
+      const salt = passphrase => nfkd(`mnemonic${passphrase}`);
+
+      function mnemonicToSeed(mnemonic, passphrase = '') {
+        return (0, pbkdf2_1.pbkdf2Async)(sha512_1.sha512, normalize(mnemonic).nfkd, salt(passphrase), {
+          c: 2048,
+          dkLen: 64
+        });
+      }
+
+      exports.mnemonicToSeed = mnemonicToSeed;
+
+      function mnemonicToSeedSync(mnemonic, passphrase = '') {
+        return (0, pbkdf2_1.pbkdf2)(sha512_1.sha512, normalize(mnemonic).nfkd, salt(passphrase), {
+          c: 2048,
+          dkLen: 64
+        });
+      }
+
+      exports.mnemonicToSeedSync = mnemonicToSeedSync;
+    }, {
+      "@noble/hashes/_assert": 29,
+      "@noble/hashes/pbkdf2": 34,
+      "@noble/hashes/sha256": 36,
+      "@noble/hashes/sha512": 38,
+      "@noble/hashes/utils": 39,
+      "@scure/base": 41
+    }],
+    43: [function (require, module, exports) {
       'use strict';
 
       Object.defineProperty(exports, "__esModule", {
@@ -5650,9 +8605,9 @@ var regeneratorRuntime;
 
       exports.constant = (value, property) => new Constant(value, property);
     }, {
-      "buffer": 37
+      "buffer": 56
     }],
-    24: [function (require, module, exports) {
+    44: [function (require, module, exports) {
       'use strict';
 
       Object.defineProperty(exports, '__esModule', {
@@ -12686,23 +15641,23 @@ var regeneratorRuntime;
       exports.sendAndConfirmRawTransaction = sendAndConfirmRawTransaction;
       exports.sendAndConfirmTransaction = sendAndConfirmTransaction;
     }, {
-      "@noble/ed25519": 13,
-      "@noble/hashes/hmac": 18,
-      "@noble/hashes/sha256": 19,
-      "@noble/hashes/sha512": 20,
-      "@noble/secp256k1": 22,
-      "@solana/buffer-layout": 23,
-      "bigint-buffer": 31,
-      "bn.js": 26,
-      "borsh": 32,
-      "bs58": 27,
-      "buffer": 37,
-      "jayson/lib/client/browser": 41,
-      "js-sha3": 28,
-      "rpc-websockets": 44,
-      "superstruct": 48
+      "@noble/ed25519": 28,
+      "@noble/hashes/hmac": 33,
+      "@noble/hashes/sha256": 36,
+      "@noble/hashes/sha512": 38,
+      "@noble/secp256k1": 40,
+      "@solana/buffer-layout": 43,
+      "bigint-buffer": 50,
+      "bn.js": 46,
+      "borsh": 51,
+      "bs58": 47,
+      "buffer": 56,
+      "jayson/lib/client/browser": 59,
+      "js-sha3": 48,
+      "rpc-websockets": 62,
+      "superstruct": 66
     }],
-    25: [function (require, module, exports) {
+    45: [function (require, module, exports) {
       'use strict';
 
       var _Buffer = require('safe-buffer').Buffer;
@@ -12874,9 +15829,9 @@ var regeneratorRuntime;
 
       module.exports = base;
     }, {
-      "safe-buffer": 47
+      "safe-buffer": 65
     }],
-    26: [function (require, module, exports) {
+    46: [function (require, module, exports) {
       (function (module, exports) {
         'use strict';
 
@@ -16234,17 +19189,17 @@ var regeneratorRuntime;
         };
       })(typeof module === 'undefined' || module, this);
     }, {
-      "buffer": 36
+      "buffer": 55
     }],
-    27: [function (require, module, exports) {
+    47: [function (require, module, exports) {
       var basex = require('base-x');
 
       var ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
       module.exports = basex(ALPHABET);
     }, {
-      "base-x": 25
+      "base-x": 45
     }],
-    28: [function (require, module, exports) {
+    48: [function (require, module, exports) {
       (function (process, global) {
         (function () {
           (function () {
@@ -16995,179 +19950,9 @@ var regeneratorRuntime;
         }).call(this);
       }).call(this, require('_process'), typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {});
     }, {
-      "_process": 43
+      "_process": 61
     }],
-    29: [function (require, module, exports) {
-      'use strict';
-
-      function base(ALPHABET) {
-        if (ALPHABET.length >= 255) {
-          throw new TypeError('Alphabet too long');
-        }
-
-        var BASE_MAP = new Uint8Array(256);
-
-        for (var j = 0; j < BASE_MAP.length; j++) {
-          BASE_MAP[j] = 255;
-        }
-
-        for (var i = 0; i < ALPHABET.length; i++) {
-          var x = ALPHABET.charAt(i);
-          var xc = x.charCodeAt(0);
-
-          if (BASE_MAP[xc] !== 255) {
-            throw new TypeError(x + ' is ambiguous');
-          }
-
-          BASE_MAP[xc] = i;
-        }
-
-        var BASE = ALPHABET.length;
-        var LEADER = ALPHABET.charAt(0);
-        var FACTOR = Math.log(BASE) / Math.log(256);
-        var iFACTOR = Math.log(256) / Math.log(BASE);
-
-        function encode(source) {
-          if (source instanceof Uint8Array) {} else if (ArrayBuffer.isView(source)) {
-            source = new Uint8Array(source.buffer, source.byteOffset, source.byteLength);
-          } else if (Array.isArray(source)) {
-            source = Uint8Array.from(source);
-          }
-
-          if (!(source instanceof Uint8Array)) {
-            throw new TypeError('Expected Uint8Array');
-          }
-
-          if (source.length === 0) {
-            return '';
-          }
-
-          var zeroes = 0;
-          var length = 0;
-          var pbegin = 0;
-          var pend = source.length;
-
-          while (pbegin !== pend && source[pbegin] === 0) {
-            pbegin++;
-            zeroes++;
-          }
-
-          var size = (pend - pbegin) * iFACTOR + 1 >>> 0;
-          var b58 = new Uint8Array(size);
-
-          while (pbegin !== pend) {
-            var carry = source[pbegin];
-            var i = 0;
-
-            for (var it1 = size - 1; (carry !== 0 || i < length) && it1 !== -1; it1--, i++) {
-              carry += 256 * b58[it1] >>> 0;
-              b58[it1] = carry % BASE >>> 0;
-              carry = carry / BASE >>> 0;
-            }
-
-            if (carry !== 0) {
-              throw new Error('Non-zero carry');
-            }
-
-            length = i;
-            pbegin++;
-          }
-
-          var it2 = size - length;
-
-          while (it2 !== size && b58[it2] === 0) {
-            it2++;
-          }
-
-          var str = LEADER.repeat(zeroes);
-
-          for (; it2 < size; ++it2) {
-            str += ALPHABET.charAt(b58[it2]);
-          }
-
-          return str;
-        }
-
-        function decodeUnsafe(source) {
-          if (typeof source !== 'string') {
-            throw new TypeError('Expected String');
-          }
-
-          if (source.length === 0) {
-            return new Uint8Array();
-          }
-
-          var psz = 0;
-          var zeroes = 0;
-          var length = 0;
-
-          while (source[psz] === LEADER) {
-            zeroes++;
-            psz++;
-          }
-
-          var size = (source.length - psz) * FACTOR + 1 >>> 0;
-          var b256 = new Uint8Array(size);
-
-          while (source[psz]) {
-            var carry = BASE_MAP[source.charCodeAt(psz)];
-
-            if (carry === 255) {
-              return;
-            }
-
-            var i = 0;
-
-            for (var it3 = size - 1; (carry !== 0 || i < length) && it3 !== -1; it3--, i++) {
-              carry += BASE * b256[it3] >>> 0;
-              b256[it3] = carry % 256 >>> 0;
-              carry = carry / 256 >>> 0;
-            }
-
-            if (carry !== 0) {
-              throw new Error('Non-zero carry');
-            }
-
-            length = i;
-            psz++;
-          }
-
-          var it4 = size - length;
-
-          while (it4 !== size && b256[it4] === 0) {
-            it4++;
-          }
-
-          var vch = new Uint8Array(zeroes + (size - it4));
-          var j = zeroes;
-
-          while (it4 !== size) {
-            vch[j++] = b256[it4++];
-          }
-
-          return vch;
-        }
-
-        function decode(string) {
-          var buffer = decodeUnsafe(string);
-
-          if (buffer) {
-            return buffer;
-          }
-
-          throw new Error('Non-base' + BASE + ' character');
-        }
-
-        return {
-          encode: encode,
-          decodeUnsafe: decodeUnsafe,
-          decode: decode
-        };
-      }
-
-      module.exports = base;
-    }, {}],
-    30: [function (require, module, exports) {
+    49: [function (require, module, exports) {
       'use strict';
 
       exports.byteLength = byteLength;
@@ -17279,7 +20064,7 @@ var regeneratorRuntime;
         return parts.join('');
       }
     }, {}],
-    31: [function (require, module, exports) {
+    50: [function (require, module, exports) {
       (function () {
         (function () {
           'use strict';
@@ -17345,9 +20130,9 @@ var regeneratorRuntime;
         }).call(this);
       }).call(this, require("buffer").Buffer);
     }, {
-      "buffer": 37
+      "buffer": 56
     }],
-    32: [function (require, module, exports) {
+    51: [function (require, module, exports) {
       (function () {
         (function () {
           "use strict";
@@ -17878,31 +20663,31 @@ var regeneratorRuntime;
         }).call(this);
       }).call(this, require("buffer").Buffer);
     }, {
-      "bn.js": 34,
-      "bs58": 35,
-      "buffer": 37,
-      "text-encoding-utf-8": 49
+      "bn.js": 53,
+      "bs58": 54,
+      "buffer": 56,
+      "text-encoding-utf-8": 67
     }],
-    33: [function (require, module, exports) {
-      arguments[4][25][0].apply(exports, arguments);
+    52: [function (require, module, exports) {
+      arguments[4][45][0].apply(exports, arguments);
     }, {
-      "dup": 25,
-      "safe-buffer": 47
+      "dup": 45,
+      "safe-buffer": 65
     }],
-    34: [function (require, module, exports) {
-      arguments[4][26][0].apply(exports, arguments);
+    53: [function (require, module, exports) {
+      arguments[4][46][0].apply(exports, arguments);
     }, {
-      "buffer": 36,
-      "dup": 26
+      "buffer": 55,
+      "dup": 46
     }],
-    35: [function (require, module, exports) {
-      arguments[4][27][0].apply(exports, arguments);
+    54: [function (require, module, exports) {
+      arguments[4][47][0].apply(exports, arguments);
     }, {
-      "base-x": 33,
-      "dup": 27
+      "base-x": 52,
+      "dup": 47
     }],
-    36: [function (require, module, exports) {}, {}],
-    37: [function (require, module, exports) {
+    55: [function (require, module, exports) {}, {}],
+    56: [function (require, module, exports) {
       (function () {
         (function () {
           'use strict';
@@ -19562,19 +22347,11 @@ var regeneratorRuntime;
         }).call(this);
       }).call(this, require("buffer").Buffer);
     }, {
-      "base64-js": 30,
-      "buffer": 37,
-      "ieee754": 40
+      "base64-js": 49,
+      "buffer": 56,
+      "ieee754": 58
     }],
-    38: [function (require, module, exports) {
-      const basex = require('base-x');
-
-      const ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
-      module.exports = basex(ALPHABET);
-    }, {
-      "base-x": 29
-    }],
-    39: [function (require, module, exports) {
+    57: [function (require, module, exports) {
       'use strict';
 
       var has = Object.prototype.hasOwnProperty,
@@ -19782,7 +22559,7 @@ var regeneratorRuntime;
         module.exports = EventEmitter;
       }
     }, {}],
-    40: [function (require, module, exports) {
+    58: [function (require, module, exports) {
       exports.read = function (buffer, offset, isLE, mLen, nBytes) {
         var e, m;
         var eLen = nBytes * 8 - mLen - 1;
@@ -19872,7 +22649,7 @@ var regeneratorRuntime;
         buffer[offset + i - d] |= s * 128;
       };
     }, {}],
-    41: [function (require, module, exports) {
+    59: [function (require, module, exports) {
       'use strict';
 
       const uuid = require('uuid').v4;
@@ -19994,10 +22771,10 @@ var regeneratorRuntime;
         callback(null, response);
       };
     }, {
-      "../../generateRequest": 42,
-      "uuid": 50
+      "../../generateRequest": 60,
+      "uuid": 68
     }],
-    42: [function (require, module, exports) {
+    60: [function (require, module, exports) {
       'use strict';
 
       const uuid = require('uuid').v4;
@@ -20048,9 +22825,9 @@ var regeneratorRuntime;
 
       module.exports = generateRequest;
     }, {
-      "uuid": 50
+      "uuid": 68
     }],
-    43: [function (require, module, exports) {
+    61: [function (require, module, exports) {
       var process = module.exports = {};
       var cachedSetTimeout;
       var cachedClearTimeout;
@@ -20242,7 +23019,7 @@ var regeneratorRuntime;
         return 0;
       };
     }, {}],
-    44: [function (require, module, exports) {
+    62: [function (require, module, exports) {
       "use strict";
 
       var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
@@ -20330,8 +23107,8 @@ var regeneratorRuntime;
 
       exports.Client = Client;
     }, {
-      "./lib/client": 45,
-      "./lib/client/websocket.browser": 46,
+      "./lib/client": 63,
+      "./lib/client/websocket.browser": 64,
       "@babel/runtime/helpers/classCallCheck": 3,
       "@babel/runtime/helpers/createClass": 4,
       "@babel/runtime/helpers/getPrototypeOf": 5,
@@ -20339,7 +23116,7 @@ var regeneratorRuntime;
       "@babel/runtime/helpers/interopRequireDefault": 7,
       "@babel/runtime/helpers/possibleConstructorReturn": 8
     }],
-    45: [function (require, module, exports) {
+    63: [function (require, module, exports) {
       (function () {
         (function () {
           "use strict";
@@ -20768,10 +23545,10 @@ var regeneratorRuntime;
       "@babel/runtime/helpers/possibleConstructorReturn": 8,
       "@babel/runtime/helpers/typeof": 11,
       "@babel/runtime/regenerator": 12,
-      "buffer": 37,
-      "eventemitter3": 39
+      "buffer": 56,
+      "eventemitter3": 57
     }],
-    46: [function (require, module, exports) {
+    64: [function (require, module, exports) {
       "use strict";
 
       var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
@@ -20891,9 +23668,9 @@ var regeneratorRuntime;
       "@babel/runtime/helpers/inherits": 6,
       "@babel/runtime/helpers/interopRequireDefault": 7,
       "@babel/runtime/helpers/possibleConstructorReturn": 8,
-      "eventemitter3": 39
+      "eventemitter3": 57
     }],
-    47: [function (require, module, exports) {
+    65: [function (require, module, exports) {
       var buffer = require('buffer');
 
       var Buffer = buffer.Buffer;
@@ -20962,9 +23739,9 @@ var regeneratorRuntime;
         return buffer.SlowBuffer(size);
       };
     }, {
-      "buffer": 37
+      "buffer": 56
     }],
-    48: [function (require, module, exports) {
+    66: [function (require, module, exports) {
       'use strict';
 
       Object.defineProperty(exports, '__esModule', {
@@ -21889,7 +24666,7 @@ var regeneratorRuntime;
       exports.unknown = unknown;
       exports.validate = validate;
     }, {}],
-    49: [function (require, module, exports) {
+    67: [function (require, module, exports) {
       'use strict';
 
       function inRange(a, min, max) {
@@ -22228,7 +25005,7 @@ var regeneratorRuntime;
       exports.TextEncoder = TextEncoder;
       exports.TextDecoder = TextDecoder;
     }, {}],
-    50: [function (require, module, exports) {
+    68: [function (require, module, exports) {
       "use strict";
 
       Object.defineProperty(exports, "__esModule", {
@@ -22313,17 +25090,17 @@ var regeneratorRuntime;
         };
       }
     }, {
-      "./nil.js": 52,
-      "./parse.js": 53,
-      "./stringify.js": 57,
-      "./v1.js": 58,
-      "./v3.js": 59,
-      "./v4.js": 61,
-      "./v5.js": 62,
-      "./validate.js": 63,
-      "./version.js": 64
+      "./nil.js": 70,
+      "./parse.js": 71,
+      "./stringify.js": 75,
+      "./v1.js": 76,
+      "./v3.js": 77,
+      "./v4.js": 79,
+      "./v5.js": 80,
+      "./validate.js": 81,
+      "./version.js": 82
     }],
-    51: [function (require, module, exports) {
+    69: [function (require, module, exports) {
       "use strict";
 
       Object.defineProperty(exports, "__esModule", {
@@ -22496,7 +25273,7 @@ var regeneratorRuntime;
       var _default = md5;
       exports.default = _default;
     }, {}],
-    52: [function (require, module, exports) {
+    70: [function (require, module, exports) {
       "use strict";
 
       Object.defineProperty(exports, "__esModule", {
@@ -22506,7 +25283,7 @@ var regeneratorRuntime;
       var _default = '00000000-0000-0000-0000-000000000000';
       exports.default = _default;
     }, {}],
-    53: [function (require, module, exports) {
+    71: [function (require, module, exports) {
       "use strict";
 
       Object.defineProperty(exports, "__esModule", {
@@ -22551,9 +25328,9 @@ var regeneratorRuntime;
       var _default = parse;
       exports.default = _default;
     }, {
-      "./validate.js": 63
+      "./validate.js": 81
     }],
-    54: [function (require, module, exports) {
+    72: [function (require, module, exports) {
       "use strict";
 
       Object.defineProperty(exports, "__esModule", {
@@ -22563,7 +25340,7 @@ var regeneratorRuntime;
       var _default = /^(?:[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|00000000-0000-0000-0000-000000000000)$/i;
       exports.default = _default;
     }, {}],
-    55: [function (require, module, exports) {
+    73: [function (require, module, exports) {
       "use strict";
 
       Object.defineProperty(exports, "__esModule", {
@@ -22585,7 +25362,7 @@ var regeneratorRuntime;
         return getRandomValues(rnds8);
       }
     }, {}],
-    56: [function (require, module, exports) {
+    74: [function (require, module, exports) {
       "use strict";
 
       Object.defineProperty(exports, "__esModule", {
@@ -22687,7 +25464,7 @@ var regeneratorRuntime;
       var _default = sha1;
       exports.default = _default;
     }, {}],
-    57: [function (require, module, exports) {
+    75: [function (require, module, exports) {
       "use strict";
 
       Object.defineProperty(exports, "__esModule", {
@@ -22722,9 +25499,9 @@ var regeneratorRuntime;
       var _default = stringify;
       exports.default = _default;
     }, {
-      "./validate.js": 63
+      "./validate.js": 81
     }],
-    58: [function (require, module, exports) {
+    76: [function (require, module, exports) {
       "use strict";
 
       Object.defineProperty(exports, "__esModule", {
@@ -22811,10 +25588,10 @@ var regeneratorRuntime;
       var _default = v1;
       exports.default = _default;
     }, {
-      "./rng.js": 55,
-      "./stringify.js": 57
+      "./rng.js": 73,
+      "./stringify.js": 75
     }],
-    59: [function (require, module, exports) {
+    77: [function (require, module, exports) {
       "use strict";
 
       Object.defineProperty(exports, "__esModule", {
@@ -22836,10 +25613,10 @@ var regeneratorRuntime;
       var _default = v3;
       exports.default = _default;
     }, {
-      "./md5.js": 51,
-      "./v35.js": 60
+      "./md5.js": 69,
+      "./v35.js": 78
     }],
-    60: [function (require, module, exports) {
+    78: [function (require, module, exports) {
       "use strict";
 
       Object.defineProperty(exports, "__esModule", {
@@ -22917,10 +25694,10 @@ var regeneratorRuntime;
         return generateUUID;
       }
     }, {
-      "./parse.js": 53,
-      "./stringify.js": 57
+      "./parse.js": 71,
+      "./stringify.js": 75
     }],
-    61: [function (require, module, exports) {
+    79: [function (require, module, exports) {
       "use strict";
 
       Object.defineProperty(exports, "__esModule", {
@@ -22962,10 +25739,10 @@ var regeneratorRuntime;
       var _default = v4;
       exports.default = _default;
     }, {
-      "./rng.js": 55,
-      "./stringify.js": 57
+      "./rng.js": 73,
+      "./stringify.js": 75
     }],
-    62: [function (require, module, exports) {
+    80: [function (require, module, exports) {
       "use strict";
 
       Object.defineProperty(exports, "__esModule", {
@@ -22987,10 +25764,10 @@ var regeneratorRuntime;
       var _default = v5;
       exports.default = _default;
     }, {
-      "./sha1.js": 56,
-      "./v35.js": 60
+      "./sha1.js": 74,
+      "./v35.js": 78
     }],
-    63: [function (require, module, exports) {
+    81: [function (require, module, exports) {
       "use strict";
 
       Object.defineProperty(exports, "__esModule", {
@@ -23013,9 +25790,9 @@ var regeneratorRuntime;
       var _default = validate;
       exports.default = _default;
     }, {
-      "./regex.js": 54
+      "./regex.js": 72
     }],
-    64: [function (require, module, exports) {
+    82: [function (require, module, exports) {
       "use strict";
 
       Object.defineProperty(exports, "__esModule", {
@@ -23042,9 +25819,9 @@ var regeneratorRuntime;
       var _default = version;
       exports.default = _default;
     }, {
-      "./validate.js": 63
+      "./validate.js": 81
     }],
-    65: [function (require, module, exports) {
+    83: [function (require, module, exports) {
       "use strict";
 
       Object.defineProperty(exports, "__esModule", {
@@ -23062,6 +25839,9 @@ var regeneratorRuntime;
           case "getPublicExtendedKey":
             return (0, _rpc.getExtendedPublicKey)(wallet);
 
+          case "signTransaction":
+            return (0, _rpc.signTransaction)(wallet);
+
           default:
             throw new Error("Method not found.");
         }
@@ -23069,111 +25849,60 @@ var regeneratorRuntime;
 
       exports.onRpcRequest = onRpcRequest;
     }, {
-      "./rpc": 67
+      "./rpc": 85
     }],
-    66: [function (require, module, exports) {
-      (function () {
-        (function () {
-          "use strict";
+    84: [function (require, module, exports) {
+      "use strict";
 
-          Object.defineProperty(exports, "__esModule", {
-            value: true
-          });
-          exports.extractAccoutPrivateKey = extractAccoutPrivateKey;
-          exports.getExtendedPublicKey = getExtendedPublicKey;
+      Object.defineProperty(exports, "__esModule", {
+        value: true
+      });
+      exports.extractAccoutPrivateKey = extractAccoutPrivateKey;
+      exports.getExtendedPublicKey = getExtendedPublicKey;
 
-          var _web = require("@solana/web3.js");
+      var _keyTree = require("@metamask/key-tree");
 
-          var bs58 = _interopRequireWildcard(require("bs58"));
+      var _web = require("@solana/web3.js");
 
-          function _getRequireWildcardCache(nodeInterop) {
-            if (typeof WeakMap !== "function") return null;
-            var cacheBabelInterop = new WeakMap();
-            var cacheNodeInterop = new WeakMap();
-            return (_getRequireWildcardCache = function (nodeInterop) {
-              return nodeInterop ? cacheNodeInterop : cacheBabelInterop;
-            })(nodeInterop);
-          }
+      async function extractAccoutPrivateKey(wallet) {
+        let coinType = 501;
+        const methodName = `snap_getBip44Entropy_${coinType}`;
+        const bitcoin44node = await wallet.request({
+          method: methodName
+        });
+        const addressKeyDeriver = await (0, _keyTree.getBIP44AddressKeyDeriver)(bitcoin44node, {
+          account: 0,
+          change: 0
+        });
+        const extendedPrivateKey = await addressKeyDeriver(0, true);
+        const privateKey = extendedPrivateKey.privateKeyBuffer.slice(0, 32);
 
-          function _interopRequireWildcard(obj, nodeInterop) {
-            if (!nodeInterop && obj && obj.__esModule) {
-              return obj;
-            }
+        const keypair = _web.Keypair.fromSeed(Uint8Array.from(privateKey));
 
-            if (obj === null || typeof obj !== "object" && typeof obj !== "function") {
-              return {
-                default: obj
-              };
-            }
+        return keypair;
+      }
 
-            var cache = _getRequireWildcardCache(nodeInterop);
+      async function getExtendedPublicKey(wallet) {
+        const result = await wallet.request({
+          method: "snap_confirm",
+          params: [{
+            prompt: "Access your extended public key?",
+            description: "Do you want to allow this app to access your extended public key?"
+          }]
+        });
 
-            if (cache && cache.has(obj)) {
-              return cache.get(obj);
-            }
-
-            var newObj = {};
-            var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor;
-
-            for (var key in obj) {
-              if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) {
-                var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null;
-
-                if (desc && (desc.get || desc.set)) {
-                  Object.defineProperty(newObj, key, desc);
-                } else {
-                  newObj[key] = obj[key];
-                }
-              }
-            }
-
-            newObj.default = obj;
-
-            if (cache) {
-              cache.set(obj, newObj);
-            }
-
-            return newObj;
-          }
-
-          async function extractAccoutPrivateKey(wallet) {
-            let coinType = 501;
-            const methodName = `snap_getBip44Entropy_${coinType}`;
-            const bitcoin44node = await wallet.request({
-              method: methodName
-            });
-            const privateKeyBuffer = Buffer.from(bitcoin44node.privateKey, "hex");
-            const chainCodeBuffer = Buffer.from(bitcoin44node.chainCode, "hex");
-
-            const keypair = _web.Keypair.fromSecretKey(bs58.decode(chainCodeBuffer.toString("hex")));
-
-            return keypair;
-          }
-
-          async function getExtendedPublicKey(wallet) {
-            const result = await wallet.request({
-              method: "snap_confirm",
-              params: [{
-                prompt: "Access your extended public key?",
-                description: "Do you want to allow this app to access your extended public key?"
-              }]
-            });
-
-            if (result) {
-              let response = await extractAccoutPrivateKey(wallet);
-              return response;
-            } else {
-              throw new Error("User reject to access the key");
-            }
-          }
-        }).call(this);
-      }).call(this, require("buffer").Buffer);
+        if (result) {
+          let response = await extractAccoutPrivateKey(wallet);
+          return response;
+        } else {
+          throw new Error("User reject to access the key");
+        }
+      }
     }, {
-      "@solana/web3.js": 24,
-      "bs58": 38,
-      "buffer": 37
+      "@metamask/key-tree": 26,
+      "@solana/web3.js": 44
     }],
-    67: [function (require, module, exports) {
+    85: [function (require, module, exports) {
       "use strict";
 
       Object.defineProperty(exports, "__esModule", {
@@ -23185,10 +25914,50 @@ var regeneratorRuntime;
           return _getExtendedPublicKey.getExtendedPublicKey;
         }
       });
+      Object.defineProperty(exports, "signTransaction", {
+        enumerable: true,
+        get: function () {
+          return _signTransaction.signTransaction;
+        }
+      });
 
       var _getExtendedPublicKey = require("./getExtendedPublicKey");
+
+      var _signTransaction = require("./signTransaction");
     }, {
-      "./getExtendedPublicKey": 66
+      "./getExtendedPublicKey": 84,
+      "./signTransaction": 86
+    }],
+    86: [function (require, module, exports) {
+      "use strict";
+
+      Object.defineProperty(exports, "__esModule", {
+        value: true
+      });
+      exports.signTransaction = signTransaction;
+
+      var _getExtendedPublicKey = require("./getExtendedPublicKey");
+
+      var _web = require("@solana/web3.js");
+
+      async function signTransaction(wallet) {
+        const user = await (0, _getExtendedPublicKey.extractAccoutPrivateKey)(wallet);
+        const connection = new _web.Connection("https://api.devnet.solana.com", "confirmed");
+        const lamportsToSend = 1000000;
+        const transferTransaction = new _web.Transaction().add(_web.SystemProgram.transfer({
+          fromPubkey: user.publicKey,
+          toPubkey: new _web.PublicKey("DdbfQXdtXsBCpCaVkrD9JsNRbchYQXKPtCUKenDCFRDu"),
+          lamports: lamportsToSend
+        }));
+        let blockhash = await connection.getLatestBlockhash("finalized");
+        transferTransaction.recentBlockhash = blockhash.blockhash;
+        await (0, _web.sendAndConfirmTransaction)(connection, transferTransaction, [user]);
+        console.log("Transaction sent and confirmed");
+        return "Transaction sent and confirmed";
+      }
+    }, {
+      "./getExtendedPublicKey": 84,
+      "@solana/web3.js": 44
     }]
-  }, {}, [65])(65);
+  }, {}, [83])(83);
 });
