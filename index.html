@@ -1,81 +1,113 @@
 <!doctype html>
 <html>
-  </head>
-    <title>Hello, Snaps!</title>
-    <link rel="icon" type="image/svg" href="./images/icon.svg"/>
-  </head>
+</head>
+<title>Hello, Snaps!</title>
+<link rel="icon" type="image/svg" href="./images/icon.svg" />
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300&display=swap" rel="stylesheet">
+<!-- <style type="text/tailwindcss">
+      @layer utilities {
+        .content-auto {
+          content-visibility: auto;
+        }
+      }
+    </style> -->
+<link rel="stylesheet" href="./style.css" type="text/css" />
+</head>
 
-  <body>
-    <h1>Hello, Snaps!</h1>
-    <details>
-      <summary>Instructions</summary>
-      <ul>
-        <li>First, click "Connect". Then, try out the other buttons!</li>
-        <li>Please note that:</li>
+<body>
+  <div class="w-full h-full flex justify-center align-center py-10">
+
+    <div class="container w-1/2 p-10 text-white">
+      <div class="flex flex-row justify-start items-center gap-5 mb-10">
+        <img src="./images/metamask_snaps.png" class="w-20 h-20" />
+        <h1 class="text-5xl font-semibold">Metamask Snaps</h1>
+      </div>
+      <h2 class="text-2xl mb-3">Current Balance</h2>
+      <h2 class="text-6xl font-bold mb-5">0 BTC</h2>
+      <h1>Hello, Snaps!</h1>
+      <details class="mb-10">
+        <summary>Instructions</summary>
         <ul>
-          <li>
-            The <code>snap.manifest.json</code> and <code>package.json</code> must be located in the server root directory...
-          </li>
-          <li>
-            The Snap bundle must be hosted at the location specified by the <code>location</code> field of <code>snap.manifest.json</code>.
-          </li>
+          <li>First, click "Connect". Then, try out the other buttons!</li>
+          <li>Please note that:</li>
+          <ul>
+            <li>
+              The <code>snap.manifest.json</code> and <code>package.json</code> must be located in the server root
+              directory...
+            </li>
+            <li>
+              The Snap bundle must be hosted at the location specified by the <code>location</code> field of
+              <code>snap.manifest.json</code>.
+            </li>
+          </ul>
         </ul>
-      </ul>
-    </details>
-    <br/>
+      </details>
+      <div class="flex flex-row gap-10">
+        <img src="./images/send.png" class="w-20 h-20" />
+        <img src="./images/send.png" class="w-20 h-20 rotate-180" />
+      </div>
+      <br />
 
-    <button class="connect">Connect</button>
-    <button class="sendHello">Send Hello</button>
-    <button class="sendGoodbye">Send Goodbye</button>
-  </body>
+      <div class="flex flex-row justify-start items-center gap-10 text-lg">
+        <button id="connect" class="btn btn-primary">Connect</button>
+        <button id="getBalance" class="btn btn-primary">Send Hello</button>
+        <button id="send" class="btn btn-primary">Send Goodbye</button>
+      </div>
+    </div>
+  </div>
+</body>
 
-  <script>
-    const snapId = `local:${window.location.href}`;
+<script>
+  const snapId = `local:${window.location.href}`;
 
-    const connectButton = document.querySelector('button.connect')
-    const sendButton = document.querySelector('button.sendHello')
-    const goodbyeButton = document.querySelector('button.sendGoodbye')
+  const connectButton = document.querySelector('button.connect')
+  const sendButton = document.querySelector('button.sendHello')
+  const goodbyeButton = document.querySelector('button.sendGoodbye')
 
-    connectButton.addEventListener('click', connect)
-    sendButton.addEventListener('click', send)
-    goodbyeButton.addEventListener('click', goodbye)
+  connectButton.addEventListener('click', connect)
+  sendButton.addEventListener('click', send)
+  goodbyeButton.addEventListener('click', goodbye)
 
-    // here we get permissions to interact with and install the snap
-    async function connect () {
+  // here we get permissions to interact with and install the snap
+  async function connect() {
+    await ethereum.request({
+      method: 'wallet_enable',
+      params: [{
+        wallet_snap: { [snapId]: {} },
+      }]
+    })
+  }
+
+  // here we call the snap's "hello" method
+  async function send() {
+    try {
       await ethereum.request({
-        method: 'wallet_enable',
-        params: [{
-          wallet_snap: { [snapId]: {} },
+        method: 'wallet_invokeSnap',
+        params: [snapId, {
+          method: 'test'
         }]
       })
+    } catch (err) {
+      console.error(err)
+      alert('Problem happened: ' + err.message || err)
     }
+  }
+  async function goodbye() {
+    try {
+      await ethereum.request({
+        method: 'wallet_invokeSnap',
+        params: [snapId, {
+          method: 'goodbye'
+        }]
+      })
+    } catch (err) {
+      console.error(err)
+      alert('Problem happened: ' + err.message || err)
+    }
+  }
+</script>
 
-    // here we call the snap's "hello" method
-    async function send () {
-      try {
-        await ethereum.request({
-          method: 'wallet_invokeSnap',
-          params: [snapId, {
-            method: 'test'
-          }]
-        })
-      } catch (err) {
-        console.error(err)
-        alert('Problem happened: ' + err.message || err)
-      }
-    }
-    async function goodbye () {
-      try {
-        await ethereum.request({
-          method: 'wallet_invokeSnap',
-          params: [snapId, {
-            method: 'goodbye'
-          }]
-        })
-      } catch (err) {
-        console.error(err)
-        alert('Problem happened: ' + err.message || err)
-      }
-    }
-  </script>
 </html>
