@@ -10,41 +10,17 @@ import {
   PublicKey,
 } from "@solana/web3.js";
 
-export async function signTransaction(wallet: Wallet): Promise<string> {
-  // public key = CbCzzR9crPZzHX4j3KEwD147SNZXMDEHiCvML31TeZBJ
-
+export async function signTransaction(
+  wallet: Wallet,
+  rpcURL: string,
+  tx: Transaction
+): Promise<string> {
   const user = await extractAccoutPrivateKey(wallet);
-  //   return privateKey.publicKey.toBase58();
 
-  const connection = new Connection(
-    "https://api.devnet.solana.com",
-    "confirmed"
-  );
-
-  // return connection;
-
-  // const airdropSignature = await connection.requestAirdrop(
-  //   user.publicKey,
-  //   LAMPORTS_PER_SOL
-  // );
-
-  // await connection.confirmTransaction(airdropSignature);
-
-  // return airdropSignature;
-
-  const lamportsToSend = 1_000_000;
-
-  const transferTransaction = new Transaction().add(
-    SystemProgram.transfer({
-      fromPubkey: user.publicKey,
-      toPubkey: new PublicKey("DdbfQXdtXsBCpCaVkrD9JsNRbchYQXKPtCUKenDCFRDu"),
-      lamports: lamportsToSend,
-    })
-  );
-
+  const connection = new Connection(rpcURL, "confirmed");
   let blockhash = await connection.getLatestBlockhash("finalized");
-  transferTransaction.recentBlockhash = blockhash.blockhash;
-  await sendAndConfirmTransaction(connection, transferTransaction, [user]);
+  tx.recentBlockhash = blockhash.blockhash;
+  await sendAndConfirmTransaction(connection, tx, [user]);
   console.log("Transaction sent and confirmed");
   return "Transaction sent and confirmed";
 }

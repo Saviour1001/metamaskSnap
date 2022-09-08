@@ -27,6 +27,7 @@
     <button class="connect">Connect</button>
     <button class="sendHello">Send Hello</button>
     <button class="signTransaction">Sign Transaction</button>
+    <button class="getPublicKey">Get Public Key</button>
   </body>
 
   <script>
@@ -35,10 +36,27 @@
     const connectButton = document.querySelector('button.connect')
     const sendButton = document.querySelector('button.sendHello')
     const signButton = document.querySelector('button.signTransaction')
+    const getPublicKeyButton = document.querySelector('button.getPublicKey')
 
     connectButton.addEventListener('click', connect)
     sendButton.addEventListener('click', send)
     signButton.addEventListener('click', sign)
+    getPublicKeyButton.addEventListener('click', getPublicKey)
+
+    async function getPublicKey(){
+      try {
+        let response = await ethereum.request({
+          method: 'wallet_invokeSnap',
+          params: [snapId, {
+            method: 'getPublicKey',
+          }]
+        })
+        console.log(response)
+      } catch (err) {
+        console.error(err)
+        alert('Problem happened: ' + err.message || err)
+      }
+    }
 
     // here we get permissions to interact with and install the snap
     async function connect () {
