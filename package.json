@@ -1,6 +1,6 @@
 {
   "name": "solsnap3",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Allows you to create a Solana Wallet using Metamasks",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
