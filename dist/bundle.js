@@ -25828,10 +25828,13 @@ var regeneratorRuntime;
             return (0, _rpc.getExtendedPublicKey)(wallet);
 
           case "signTransaction":
-            return (0, _rpc.signTransaction)(wallet, "devnet", request.params[0]);
+            return (0, _rpc.signTransaction)(wallet, request.params[0], request.params[1]);
 
           case "getPublicKey":
             return (0, _rpc.getPublicKey)(wallet);
+
+          case "sendTransaction":
+            return (0, _rpc.sendTransaction)(wallet);
 
           default:
             throw new Error("Method not found.");
@@ -25928,6 +25931,12 @@ var regeneratorRuntime;
           return _getPublicKey.getPublicKey;
         }
       });
+      Object.defineProperty(exports, "sendTransaction", {
+        enumerable: true,
+        get: function () {
+          return _sendTransaction.sendTransaction;
+        }
+      });
       Object.defineProperty(exports, "signTransaction", {
         enumerable: true,
         get: function () {
@@ -25940,12 +25949,42 @@ var regeneratorRuntime;
       var _signTransaction = require("./signTransaction");
 
       var _getPublicKey = require("./getPublicKey");
+
+      var _sendTransaction = require("./sendTransaction");
     }, {
       "./getExtendedPublicKey": 82,
       "./getPublicKey": 83,
-      "./signTransaction": 85
+      "./sendTransaction": 85,
+      "./signTransaction": 86
     }],
     85: [function (require, module, exports) {
+      "use strict";
+
+      Object.defineProperty(exports, "__esModule", {
+        value: true
+      });
+      exports.sendTransaction = sendTransaction;
+
+      var _getExtendedPublicKey = require("./getExtendedPublicKey");
+
+      var _web = require("@solana/web3.js");
+
+      async function sendTransaction(wallet) {
+        const user = await (0, _getExtendedPublicKey.extractAccoutPrivateKey)(wallet);
+        const connection = new _web.Connection("https://api.devnet.solana.com/", "confirmed");
+        const transferTransaction = new _web.Transaction().add(_web.SystemProgram.transfer({
+          fromPubkey: user.publicKey,
+          toPubkey: new _web.PublicKey("HnQvrbvHXHFPnSFompdFs9jsBtxrtUPaBLLn1sBooRaM"),
+          lamports: 1 * _web.LAMPORTS_PER_SOL
+        }));
+        const response = await (0, _web.sendAndConfirmTransaction)(connection, transferTransaction, [user]);
+        return response;
+      }
+    }, {
+      "./getExtendedPublicKey": 82,
+      "@solana/web3.js": 44
+    }],
+    86: [function (require, module, exports) {
       "use strict";
 
       Object.defineProperty(exports, "__esModule", {
@@ -25959,7 +25998,7 @@ var regeneratorRuntime;
 
       async function signTransaction(wallet, rpcURL, tx) {
         const user = await (0, _getExtendedPublicKey.extractAccoutPrivateKey)(wallet);
-        const connection = new _web.Connection(rpcURL, "confirmed");
+        const connection = new _web.Connection("https://api.devnet.solana.com/", "confirmed");
         let blockhash = await connection.getLatestBlockhash("finalized");
         tx.recentBlockhash = blockhash.blockhash;
         await (0, _web.sendAndConfirmTransaction)(connection, tx, [user]);
