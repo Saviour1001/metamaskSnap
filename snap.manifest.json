@@ -1,5 +1,5 @@
 {
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "This Snap allows you to send Solana Devnet transactions via Metamask",
   "proposedName": "SolSnapMarkOne",
   "source": {
