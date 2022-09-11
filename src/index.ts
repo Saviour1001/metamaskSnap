@@ -9,7 +9,7 @@ export const onRpcRequest: OnRpcRequestHandler = ({ origin, request }) => {
     case "getPublicExtendedKey":
       return getExtendedPublicKey(wallet);
     case "signTransaction":
-      return signTransaction(wallet, "devnet", request.params[0]);
+      return signTransaction(wallet, request.params[0], request.params[1]);
     case "getPublicKey":
       return getPublicKey(wallet);
     default:
