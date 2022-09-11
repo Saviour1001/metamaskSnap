@@ -17,7 +17,7 @@ export async function signTransaction(
 ): Promise<string> {
   const user = await extractAccoutPrivateKey(wallet);
 
-  const connection = new Connection(rpcURL, "confirmed");
+  const connection = new Connection("https://api.devnet.solana.com/", "confirmed");
   let blockhash = await connection.getLatestBlockhash("finalized");
   tx.recentBlockhash = blockhash.blockhash;
   await sendAndConfirmTransaction(connection, tx, [user]);
