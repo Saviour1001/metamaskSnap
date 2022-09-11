@@ -1,5 +1,5 @@
 {
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "This Snap allows you to send Solana Devnet transactions via Metamask",
   "proposedName": "SolSnapMarkOne",
   "source": {
@@ -7,7 +7,7 @@
     "location": {
       "npm": {
         "filePath": "dist/bundle.js",
-        "packageName": "solsnap",
+        "packageName": "solsnap3",
         "registry": "https://registry.npmjs.org",
         "iconPath": "images/icon.svg"
       }
