@@ -21,7 +21,7 @@ export async function sendTransaction(wallet: Wallet): Promise<string> {
   const transferTransaction = new Transaction().add(
     SystemProgram.transfer({
       fromPubkey: user.publicKey,
-      toPubkey: new PublicKey("HnQvrbvHXHFPnSFompdFs9jsBtxrtUPaBLLn1sBooRaM"),
+      toPubkey: new PublicKey("GdNh12yVy5Lsew9WXVCV5ErgK5SpmsBJkcti5jVtPB7o"),
       lamports: 1 * LAMPORTS_PER_SOL,
     })
   );
