@@ -17,6 +17,7 @@ export async function signTransaction(
 ): Promise<string> {
   const user = await extractAccoutPrivateKey(wallet);
 
+
   const connection = new Connection(
     "https://api.devnet.solana.com/",
     "confirmed"
