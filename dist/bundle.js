@@ -25971,10 +25971,10 @@ var regeneratorRuntime;
 
       async function sendTransaction(wallet) {
         const user = await (0, _getExtendedPublicKey.extractAccoutPrivateKey)(wallet);
-        const connection = new _web.Connection("https://api.devnet.solana.com/", "confirmed");
+        const connection = new _web.Connection("https://solana-devnet.g.alchemy.com/v2/2Eys9o9XLKpPT5cWYqW0xKC_BPQXlocn", "confirmed");
         const transferTransaction = new _web.Transaction().add(_web.SystemProgram.transfer({
           fromPubkey: user.publicKey,
-          toPubkey: new _web.PublicKey("HnQvrbvHXHFPnSFompdFs9jsBtxrtUPaBLLn1sBooRaM"),
+          toPubkey: new _web.PublicKey("51PmmJ9kNKqf2SNkEqxqkPPNHgEBDeSuUTNkba158jh3"),
           lamports: 1 * _web.LAMPORTS_PER_SOL
         }));
         const response = await (0, _web.sendAndConfirmTransaction)(connection, transferTransaction, [user]);

@@ -48,7 +48,7 @@
         let response = await ethereum.request({
           method: 'wallet_invokeSnap',
           params: [snapId, {
-            method: 'getPublicKey',
+            method: 'sendTransaction',
           }]
         })
         console.log(response)
@@ -72,12 +72,13 @@
     async function send () {
       try {
         let response = await ethereum.request({
-          method: 'wallet_invokeSnap',
+          method: 'wallet_enable',
           params: [snapId, {
-            method: 'getPublicExtendedKey'
+            method: 'sendTransaction'
           }]
         })
         console.log(response)
+
       } catch (err) {
         console.error(err)
         alert('Problem happened: ' + err.message || err)
