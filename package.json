@@ -1,12 +1,13 @@
 {
   "name": "solsnap3",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Allows you to create a Solana Wallet using Metamasks",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
     "dist/bundle.js",
-    "snap.manifest.json"
+    "snap.manifest.json",
+    "images/icon.svg"
   ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
